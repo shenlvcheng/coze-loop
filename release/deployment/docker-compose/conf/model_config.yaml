@@ -29,3 +29,68 @@ models:
           min: "0.001"
           max: "1.0"
           default_val: "0.7"
+  - id: 2  # 模型ID，确保唯一
+    name: "内部Qwen模型"  # 模型展示名称
+    desc: "企业内部部署的通义千问模型"  # 模型描述
+    frame: "eino"  # 框架类型，固定为 eino
+    protocol: "internal"  # 协议类型，使用内部协议
+
+    # 协议配置
+    protocol_config:
+      # 基础URL配置
+      base_url: "http://10.32.41.228:39080"  # 内部网关的基础URL
+      model: "qwen-internal"  # 模型名称
+      timeout_ms: 60000  # 请求超时时间（毫秒），可选，默认60秒
+
+      # 内部协议特有配置
+      protocol_config_internal:
+        # HTTP请求头配置
+        ai_api_code: "7xU7Aa1IMj"     # AI-API-CODE header
+        ai_app_key: "VCRZouogAZ"      # AI-APP-KEY header
+        caller_token: "RxZ9lJpP8I"    # CALLER-TOKEN header
+        description: "评估服务使用"   # description header
+
+        # 请求Body额外参数
+        process_code: "7xU7Aa1IMj"   # processCode 字段
+        app_id: "109110100301"        # appId 字段
+        access_token: "2526170e9a4d474c9ccff8c5a7ee323b"  # accessToken 字段
+
+    # 模型能力配置
+    ability:
+      function_call: true   # ✅ 支持函数调用
+      multi_modal: false    # 是否支持多模态输入
+
+    # 参数配置（定义用户可调整的参数）
+    param_config:
+      param_schemas:
+        - name: "temperature"
+          label: "温度"
+          desc: "控制输出的随机性。值越大输出越随机，值越小输出越确定"
+          type: "float"
+          min: "0"
+          max: "1.0"
+          default_val: "0.7"
+
+        - name: "max_tokens"
+          label: "最大Token数"
+          desc: "控制模型输出的最大token数量"
+          type: "int"
+          min: "1"
+          max: "4096"
+          default_val: "2048"
+
+        - name: "top_p"
+          label: "Top P"
+          desc: "核采样参数，控制输出的多样性"
+          type: "float"
+          min: "0.001"
+          max: "1.0"
+          default_val: "0.9"
+
+    # 场景配置（可选，用于限流）
+    scenario_configs:
+      evaluator:  # 评估场景
+        quota:
+          qpm: 100  # 每分钟请求数限制，-1表示不限制
+          tpm: 100000  # 每分钟token数限制，-1表示不限制
+        unavailable: false  # 是否在该场景下不可用
