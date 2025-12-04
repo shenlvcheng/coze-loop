@@ -1,6 +1,15 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 
+//--------------start----------------------
+//新增代码人  Claude (AI Assistant)
+//新增代码原因：实现内部协议HTTP客户端，支持：
+//             1. 自定义认证headers（AI-API-CODE, AI-APP-KEY, CALLER-TOKEN, description）
+//             2. 额外请求body字段（processCode, appId, accessToken）
+//             3. Function Calling工具调用
+//             4. 流式和非流式响应
+//             5. OpenAI兼容的响应格式解析
+
 package internal
 
 import (
@@ -405,3 +414,4 @@ type openAIStreamChunk struct {
 		TotalTokens      int `json:"total_tokens"`
 	} `json:"usage,omitempty"`
 }
+//--------------end-----------------------

@@ -28,7 +28,11 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/entity"
+	//--------------start----------------------
+	//新增代码人  Claude (AI Assistant)
+	//新增代码原因：导入内部协议HTTP客户端实现包
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/service/llmimpl/internal"
+	//--------------end-----------------------
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
@@ -56,8 +60,12 @@ func NewLLM(ctx context.Context, model *entity.Model, opts ...entity.Option) (*L
 		chatModel, err = qianfanBuilder(ctx, model, opts...)
 	case entity.ProtocolArkBot:
 		chatModel, err = arkBotBuilder(ctx, model, opts...)
+	//--------------start----------------------
+	//新增代码人  Claude (AI Assistant)
+	//新增代码原因：注册内部协议处理分支，使用internalBuilder构建内部协议模型客户端
 	case entity.ProtocolInternal:
 		chatModel, err = internalBuilder(ctx, model, opts...)
+	//--------------end-----------------------
 	default:
 		err = errors.Errorf("eino unsupport the protocol:%s", model.Protocol)
 	}
@@ -445,6 +453,10 @@ func arkBotBuilder(ctx context.Context, model *entity.Model, opts ...entity.Opti
 	return arkbot.NewChatModel(ctx, cfg)
 }
 
+//--------------start----------------------
+//新增代码人  Claude (AI Assistant)
+//新增代码原因：实现内部协议的builder函数，用于构建内部协议的模型客户端
+//             支持自定义认证headers、额外body字段和Function Calling
 func internalBuilder(ctx context.Context, model *entity.Model, opts ...entity.Option) (einoModel.ToolCallingChatModel, error) {
 	if err := checkModelBeforeBuild(model); err != nil {
 		return nil, err
@@ -494,3 +506,4 @@ func internalBuilder(ctx context.Context, model *entity.Model, opts ...entity.Op
 
 	return internal.NewChatModel(ctx, cfg)
 }
+//--------------end-----------------------
