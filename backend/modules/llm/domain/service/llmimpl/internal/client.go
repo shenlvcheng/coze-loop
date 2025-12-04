@@ -17,13 +17,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	einoModel "github.com/cloudwego/eino/components/model"
+	"github.com/cloudwego/eino/schema"
 	"github.com/pkg/errors"
 )
 
@@ -51,7 +51,7 @@ type ChatModelConfig struct {
 type ChatModel struct {
 	config     *ChatModelConfig
 	httpClient *http.Client
-	tools      []*einoModel.ToolInfo // 绑定的工具
+	tools      []*schema.ToolInfo // 绑定的工具
 }
 
 // NewChatModel 创建新的内部协议聊天模型实例
@@ -76,7 +76,7 @@ func NewChatModel(ctx context.Context, cfg *ChatModelConfig) (einoModel.ToolCall
 }
 
 // Generate 非流式生成
-func (c *ChatModel) Generate(ctx context.Context, input []*einoModel.Message, opts ...einoModel.Option) (*einoModel.Message, error) {
+func (c *ChatModel) Generate(ctx context.Context, input []*schema.Message, opts ...einoModel.Option) (*schema.Message, error) {
 	// 构建请求
 	reqBody := c.buildRequestBody(input, false)
 	req, err := c.buildHTTPRequest(ctx, reqBody)
@@ -106,7 +106,7 @@ func (c *ChatModel) Generate(ctx context.Context, input []*einoModel.Message, op
 }
 
 // Stream 流式生成
-func (c *ChatModel) Stream(ctx context.Context, input []*einoModel.Message, opts ...einoModel.Option) (einoModel.StreamReader[*einoModel.Message], error) {
+func (c *ChatModel) Stream(ctx context.Context, input []*schema.Message, opts ...einoModel.Option) (*schema.StreamReader[*schema.Message], error) {
 	// 构建请求
 	reqBody := c.buildRequestBody(input, true)
 	req, err := c.buildHTTPRequest(ctx, reqBody)
@@ -126,14 +126,98 @@ func (c *ChatModel) Stream(ctx context.Context, input []*einoModel.Message, opts
 		return nil, errors.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
 	}
 
-	return &streamReader{
-		scanner: bufio.NewScanner(resp.Body),
-		closer:  resp.Body,
-	}, nil
+	// 使用 Pipe 创建 StreamReader 和 StreamWriter
+	reader, writer := schema.Pipe[*schema.Message](10)
+
+	// 在后台 goroutine 中读取 HTTP 响应并写入到 writer
+	go func() {
+		defer writer.Close()
+		defer resp.Body.Close()
+
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
+			line := scanner.Text()
+			line = strings.TrimSpace(line)
+
+			// 跳过空行
+			if line == "" {
+				continue
+			}
+
+			// 检查是否是结束标记
+			if strings.HasPrefix(line, "data: [DONE]") {
+				break
+			}
+
+			// 解析 SSE 格式
+			if !strings.HasPrefix(line, "data: ") {
+				continue
+			}
+
+			jsonStr := strings.TrimPrefix(line, "data: ")
+			var chunk openAIStreamChunk
+			if err := json.Unmarshal([]byte(jsonStr), &chunk); err != nil {
+				continue
+			}
+
+			if len(chunk.Choices) == 0 {
+				continue
+			}
+
+			choice := chunk.Choices[0]
+			msg := &schema.Message{
+				Role:    schema.Assistant,
+				Content: choice.Delta.Content,
+			}
+
+			// 处理工具调用
+			if len(choice.Delta.ToolCalls) > 0 {
+				toolCalls := make([]schema.ToolCall, 0, len(choice.Delta.ToolCalls))
+				for _, tc := range choice.Delta.ToolCalls {
+					toolCalls = append(toolCalls, schema.ToolCall{
+						ID:   tc.ID,
+						Type: tc.Type,
+						Function: schema.FunctionCall{
+							Name:      tc.Function.Name,
+							Arguments: tc.Function.Arguments,
+						},
+					})
+				}
+				msg.ToolCalls = toolCalls
+			}
+
+			// 如果有 finish_reason，设置 ResponseMeta
+			if choice.FinishReason != "" {
+				msg.ResponseMeta = &schema.ResponseMeta{
+					FinishReason: choice.FinishReason,
+				}
+			}
+
+			// 如果有 usage 信息
+			if chunk.Usage != nil {
+				if msg.ResponseMeta == nil {
+					msg.ResponseMeta = &schema.ResponseMeta{}
+				}
+				msg.ResponseMeta.Usage = &schema.TokenUsage{
+					PromptTokens:     chunk.Usage.PromptTokens,
+					CompletionTokens: chunk.Usage.CompletionTokens,
+					TotalTokens:      chunk.Usage.TotalTokens,
+				}
+			}
+
+			writer.Send(msg, nil)
+		}
+
+		if err := scanner.Err(); err != nil {
+			writer.Send(nil, err)
+		}
+	}()
+
+	return reader, nil
 }
 
 // buildRequestBody 构建请求body
-func (c *ChatModel) buildRequestBody(input []*einoModel.Message, stream bool) map[string]interface{} {
+func (c *ChatModel) buildRequestBody(input []*schema.Message, stream bool) map[string]interface{} {
 	messages := make([]map[string]interface{}, 0, len(input))
 	for _, msg := range input {
 		messages = append(messages, map[string]interface{}{
@@ -168,12 +252,21 @@ func (c *ChatModel) buildRequestBody(input []*einoModel.Message, stream bool) ma
 	if len(c.tools) > 0 {
 		tools := make([]map[string]interface{}, 0, len(c.tools))
 		for _, tool := range c.tools {
+			// 转换参数为 OpenAPI v3 格式
+			var parameters interface{}
+			if tool.ParamsOneOf != nil {
+				openAPISchema, err := tool.ParamsOneOf.ToOpenAPIV3()
+				if err == nil && openAPISchema != nil {
+					parameters = openAPISchema
+				}
+			}
+
 			tools = append(tools, map[string]interface{}{
 				"type": "function",
 				"function": map[string]interface{}{
 					"name":        tool.Name,
 					"description": tool.Desc,
-					"parameters":  tool.ParamsOneOf.Schemas[0], // 使用第一个schema
+					"parameters":  parameters,
 				},
 			})
 		}
@@ -209,28 +302,28 @@ func (c *ChatModel) buildHTTPRequest(ctx context.Context, body map[string]interf
 }
 
 // convertToEinoMessage 将OpenAI格式的响应转换为Eino Message
-func (c *ChatModel) convertToEinoMessage(resp *openAIResponse) *einoModel.Message {
+func (c *ChatModel) convertToEinoMessage(resp *openAIResponse) *schema.Message {
 	if len(resp.Choices) == 0 {
-		return &einoModel.Message{
-			Role:    einoModel.Assistant,
+		return &schema.Message{
+			Role:    schema.Assistant,
 			Content: "",
 		}
 	}
 
 	choice := resp.Choices[0]
-	msg := &einoModel.Message{
-		Role:    einoModel.Assistant,
+	msg := &schema.Message{
+		Role:    schema.Assistant,
 		Content: choice.Message.Content,
 	}
 
 	// 处理工具调用
 	if len(choice.Message.ToolCalls) > 0 {
-		toolCalls := make([]*einoModel.ToolCall, 0, len(choice.Message.ToolCalls))
+		toolCalls := make([]schema.ToolCall, 0, len(choice.Message.ToolCalls))
 		for _, tc := range choice.Message.ToolCalls {
-			toolCalls = append(toolCalls, &einoModel.ToolCall{
+			toolCalls = append(toolCalls, schema.ToolCall{
 				ID:   tc.ID,
 				Type: tc.Type,
-				Function: &einoModel.ToolCallFunction{
+				Function: schema.FunctionCall{
 					Name:      tc.Function.Name,
 					Arguments: tc.Function.Arguments,
 				},
@@ -241,9 +334,9 @@ func (c *ChatModel) convertToEinoMessage(resp *openAIResponse) *einoModel.Messag
 
 	// 设置 ResponseMeta
 	if resp.Usage != nil {
-		msg.ResponseMeta = &einoModel.ResponseMeta{
+		msg.ResponseMeta = &schema.ResponseMeta{
 			FinishReason: choice.FinishReason,
-			Usage: &einoModel.TokenUsage{
+			Usage: &schema.TokenUsage{
 				PromptTokens:     resp.Usage.PromptTokens,
 				CompletionTokens: resp.Usage.CompletionTokens,
 				TotalTokens:      resp.Usage.TotalTokens,
@@ -255,13 +348,13 @@ func (c *ChatModel) convertToEinoMessage(resp *openAIResponse) *einoModel.Messag
 }
 
 // BindTools 绑定工具（用于实现ChatModel接口）
-func (c *ChatModel) BindTools(tools []*einoModel.ToolInfo) (einoModel.ChatModel, error) {
+func (c *ChatModel) BindTools(tools []*schema.ToolInfo) error {
 	c.tools = tools
-	return c, nil
+	return nil
 }
 
 // WithTools 绑定工具（用于实现ToolCallingChatModel接口）
-func (c *ChatModel) WithTools(tools []*einoModel.ToolInfo) (einoModel.ToolCallingChatModel, error) {
+func (c *ChatModel) WithTools(tools []*schema.ToolInfo) (einoModel.ToolCallingChatModel, error) {
 	c.tools = tools
 	return c, nil
 }
@@ -293,97 +386,6 @@ type openAIResponse struct {
 		CompletionTokens int `json:"completion_tokens"`
 		TotalTokens      int `json:"total_tokens"`
 	} `json:"usage,omitempty"`
-}
-
-// streamReader 流式读取器
-type streamReader struct {
-	scanner *bufio.Scanner
-	closer  io.Closer
-}
-
-func (s *streamReader) Recv() (*einoModel.Message, error) {
-	for s.scanner.Scan() {
-		line := s.scanner.Text()
-		line = strings.TrimSpace(line)
-
-		// 跳过空行
-		if line == "" {
-			continue
-		}
-
-		// 检查是否是结束标记
-		if strings.HasPrefix(line, "data: [DONE]") {
-			return nil, io.EOF
-		}
-
-		// 解析 SSE 格式
-		if !strings.HasPrefix(line, "data: ") {
-			continue
-		}
-
-		jsonStr := strings.TrimPrefix(line, "data: ")
-		var chunk openAIStreamChunk
-		if err := json.Unmarshal([]byte(jsonStr), &chunk); err != nil {
-			continue
-		}
-
-		if len(chunk.Choices) == 0 {
-			continue
-		}
-
-		choice := chunk.Choices[0]
-		msg := &einoModel.Message{
-			Role:    einoModel.Assistant,
-			Content: choice.Delta.Content,
-		}
-
-		// 处理工具调用
-		if len(choice.Delta.ToolCalls) > 0 {
-			toolCalls := make([]*einoModel.ToolCall, 0, len(choice.Delta.ToolCalls))
-			for _, tc := range choice.Delta.ToolCalls {
-				toolCalls = append(toolCalls, &einoModel.ToolCall{
-					ID:   tc.ID,
-					Type: tc.Type,
-					Function: &einoModel.ToolCallFunction{
-						Name:      tc.Function.Name,
-						Arguments: tc.Function.Arguments,
-					},
-				})
-			}
-			msg.ToolCalls = toolCalls
-		}
-
-		// 如果有 finish_reason，设置 ResponseMeta
-		if choice.FinishReason != "" {
-			msg.ResponseMeta = &einoModel.ResponseMeta{
-				FinishReason: choice.FinishReason,
-			}
-		}
-
-		// 如果有 usage 信息
-		if chunk.Usage != nil {
-			if msg.ResponseMeta == nil {
-				msg.ResponseMeta = &einoModel.ResponseMeta{}
-			}
-			msg.ResponseMeta.Usage = &einoModel.TokenUsage{
-				PromptTokens:     chunk.Usage.PromptTokens,
-				CompletionTokens: chunk.Usage.CompletionTokens,
-				TotalTokens:      chunk.Usage.TotalTokens,
-			}
-		}
-
-		return msg, nil
-	}
-
-	if err := s.scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return nil, io.EOF
-}
-
-func (s *streamReader) Close() error {
-	return s.closer.Close()
 }
 
 // openAIStreamChunk OpenAI流式响应块
