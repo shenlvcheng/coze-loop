@@ -171,7 +171,11 @@ type ProtocolConfig struct {
 	ProtocolConfigQwen      *ProtocolConfigQwen      `json:"protocol_config_qwen" yaml:"protocol_config_qwen" mapstructure:"protocol_config_qwen"`
 	ProtocolConfigQianfan   *ProtocolConfigQianfan   `json:"protocol_config_qianfan" yaml:"protocol_config_qianfan" mapstructure:"protocol_config_qianfan"`
 	ProtocolConfigArkBot    *ProtocolConfigArkBot    `json:"protocol_config_ark_bot" yaml:"protocol_config_ark_bot" mapstructure:"protocol_config_ark_bot"`
+	//--------------start----------------------
+	//新增代码人  Claude (AI Assistant)
+	//新增代码原因：添加内部协议配置字段，用于存储内部协议特有的认证参数
 	ProtocolConfigInternal  *ProtocolConfigInternal  `json:"protocol_config_internal" yaml:"protocol_config_internal" mapstructure:"protocol_config_internal"`
+	//--------------end-----------------------
 }
 
 type ProtocolConfigArk struct {
@@ -241,6 +245,10 @@ type ProtocolConfigArkBot struct {
 	CustomHeaders map[string]string `json:"custom_headers" yaml:"custom_headers" mapstructure:"custom_headers"`
 }
 
+//--------------start----------------------
+//新增代码人  Claude (AI Assistant)
+//新增代码原因：定义内部协议配置结构，包含自定义认证headers和请求body额外字段
+//             用于支持企业内部大模型服务的特殊认证和参数传递需求
 type ProtocolConfigInternal struct {
 	AIApiCode   string `json:"ai_api_code" yaml:"ai_api_code" mapstructure:"ai_api_code"`       // AI-API-CODE header
 	AIAppKey    string `json:"ai_app_key" yaml:"ai_app_key" mapstructure:"ai_app_key"`          // AI-APP-KEY header
@@ -250,6 +258,7 @@ type ProtocolConfigInternal struct {
 	AppID       string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`                      // appId in body
 	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`    // accessToken in body
 }
+//--------------end-----------------------
 
 type ScenarioConfig struct{
 	Scenario    Scenario `json:"scenario" yaml:"scenario" mapstructure:"scenario"`
@@ -373,7 +382,11 @@ const (
 	ProtocolQwen     Protocol = "qwen"
 	ProtocolQianfan  Protocol = "qianfan"
 	ProtocolArkBot   Protocol = "arkbot"
+	//--------------start----------------------
+	//新增代码人  Claude (AI Assistant)
+	//新增代码原因：添加内部协议支持，用于集成企业内部大模型服务
 	ProtocolInternal Protocol = "internal"
+	//--------------end-----------------------
 )
 
 type ListModelReq struct {
