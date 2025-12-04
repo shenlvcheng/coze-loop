@@ -158,19 +158,20 @@ type AbilityImage struct {
 }
 
 type ProtocolConfig struct {
-	BaseURL                string                  `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
-	APIKey                 string                  `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
-	Model                  string                  `json:"model" yaml:"model" mapstructure:"model"`
-	TimeoutMs              *int64                  `json:"timeout_ms" yaml:"timeout_ms" mapstructure:"timeout_ms"`
-	ProtocolConfigArk      *ProtocolConfigArk      `json:"protocol_config_ark" yaml:"protocol_config_ark" mapstructure:"protocol_config_ark"`
-	ProtocolConfigOpenAI   *ProtocolConfigOpenAI   `json:"protocol_config_openai" yaml:"protocol_config_openai" mapstructure:"protocol_config_openai"`
-	ProtocolConfigClaude   *ProtocolConfigClaude   `json:"protocol_config_claude" yaml:"protocol_config_claude" mapstructure:"protocol_config_claude"`
-	ProtocolConfigDeepSeek *ProtocolConfigDeepSeek `json:"protocol_config_deep_seek" yaml:"protocol_config_deep_seek" mapstructure:"protocol_config_deep_seek"`
-	ProtocolConfigGemini   *ProtocolConfigGemini   `json:"protocol_config_gemini" yaml:"protocol_config_gemini" mapstructure:"protocol_config_gemini"`
-	ProtocolConfigOllama   *ProtocolConfigOllama   `json:"protocol_config_ollama" yaml:"protocol_config_ollama" mapstructure:"protocol_config_ollama"`
-	ProtocolConfigQwen     *ProtocolConfigQwen     `json:"protocol_config_qwen" yaml:"protocol_config_qwen" mapstructure:"protocol_config_qwen"`
-	ProtocolConfigQianfan  *ProtocolConfigQianfan  `json:"protocol_config_qianfan" yaml:"protocol_config_qianfan" mapstructure:"protocol_config_qianfan"`
-	ProtocolConfigArkBot   *ProtocolConfigArkBot   `json:"protocol_config_ark_bot" yaml:"protocol_config_ark_bot" mapstructure:"protocol_config_ark_bot"`
+	BaseURL                 string                   `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
+	APIKey                  string                   `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
+	Model                   string                   `json:"model" yaml:"model" mapstructure:"model"`
+	TimeoutMs               *int64                   `json:"timeout_ms" yaml:"timeout_ms" mapstructure:"timeout_ms"`
+	ProtocolConfigArk       *ProtocolConfigArk       `json:"protocol_config_ark" yaml:"protocol_config_ark" mapstructure:"protocol_config_ark"`
+	ProtocolConfigOpenAI    *ProtocolConfigOpenAI    `json:"protocol_config_openai" yaml:"protocol_config_openai" mapstructure:"protocol_config_openai"`
+	ProtocolConfigClaude    *ProtocolConfigClaude    `json:"protocol_config_claude" yaml:"protocol_config_claude" mapstructure:"protocol_config_claude"`
+	ProtocolConfigDeepSeek  *ProtocolConfigDeepSeek  `json:"protocol_config_deep_seek" yaml:"protocol_config_deep_seek" mapstructure:"protocol_config_deep_seek"`
+	ProtocolConfigGemini    *ProtocolConfigGemini    `json:"protocol_config_gemini" yaml:"protocol_config_gemini" mapstructure:"protocol_config_gemini"`
+	ProtocolConfigOllama    *ProtocolConfigOllama    `json:"protocol_config_ollama" yaml:"protocol_config_ollama" mapstructure:"protocol_config_ollama"`
+	ProtocolConfigQwen      *ProtocolConfigQwen      `json:"protocol_config_qwen" yaml:"protocol_config_qwen" mapstructure:"protocol_config_qwen"`
+	ProtocolConfigQianfan   *ProtocolConfigQianfan   `json:"protocol_config_qianfan" yaml:"protocol_config_qianfan" mapstructure:"protocol_config_qianfan"`
+	ProtocolConfigArkBot    *ProtocolConfigArkBot    `json:"protocol_config_ark_bot" yaml:"protocol_config_ark_bot" mapstructure:"protocol_config_ark_bot"`
+	ProtocolConfigInternal  *ProtocolConfigInternal  `json:"protocol_config_internal" yaml:"protocol_config_internal" mapstructure:"protocol_config_internal"`
 }
 
 type ProtocolConfigArk struct {
@@ -240,7 +241,17 @@ type ProtocolConfigArkBot struct {
 	CustomHeaders map[string]string `json:"custom_headers" yaml:"custom_headers" mapstructure:"custom_headers"`
 }
 
-type ScenarioConfig struct {
+type ProtocolConfigInternal struct {
+	AIApiCode   string `json:"ai_api_code" yaml:"ai_api_code" mapstructure:"ai_api_code"`       // AI-API-CODE header
+	AIAppKey    string `json:"ai_app_key" yaml:"ai_app_key" mapstructure:"ai_app_key"`          // AI-APP-KEY header
+	CallerToken string `json:"caller_token" yaml:"caller_token" mapstructure:"caller_token"`    // CALLER-TOKEN header
+	Description string `json:"description" yaml:"description" mapstructure:"description"`       // description header
+	ProcessCode string `json:"process_code" yaml:"process_code" mapstructure:"process_code"`    // processCode in body
+	AppID       string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`                      // appId in body
+	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`    // accessToken in body
+}
+
+type ScenarioConfig struct{
 	Scenario    Scenario `json:"scenario" yaml:"scenario" mapstructure:"scenario"`
 	Quota       *Quota   `json:"quota" yaml:"quota" mapstructure:"quota"`
 	Unavailable bool     `json:"unavailable" yaml:"unavailable" mapstructure:"unavailable"`
@@ -362,6 +373,7 @@ const (
 	ProtocolQwen     Protocol = "qwen"
 	ProtocolQianfan  Protocol = "qianfan"
 	ProtocolArkBot   Protocol = "arkbot"
+	ProtocolInternal Protocol = "internal"
 )
 
 type ListModelReq struct {

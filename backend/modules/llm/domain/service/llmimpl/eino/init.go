@@ -28,6 +28,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/entity"
+	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/service/llmimpl/internal"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
@@ -55,6 +56,8 @@ func NewLLM(ctx context.Context, model *entity.Model, opts ...entity.Option) (*L
 		chatModel, err = qianfanBuilder(ctx, model, opts...)
 	case entity.ProtocolArkBot:
 		chatModel, err = arkBotBuilder(ctx, model, opts...)
+	case entity.ProtocolInternal:
+		chatModel, err = internalBuilder(ctx, model, opts...)
 	default:
 		err = errors.Errorf("eino unsupport the protocol:%s", model.Protocol)
 	}
@@ -440,4 +443,54 @@ func arkBotBuilder(ctx context.Context, model *entity.Model, opts ...entity.Opti
 		}
 	}
 	return arkbot.NewChatModel(ctx, cfg)
+}
+
+func internalBuilder(ctx context.Context, model *entity.Model, opts ...entity.Option) (einoModel.ToolCallingChatModel, error) {
+	if err := checkModelBeforeBuild(model); err != nil {
+		return nil, err
+	}
+
+	p := model.ProtocolConfig
+	ops := entity.ApplyOptions(nil, opts...)
+
+	cfg := &internal.ChatModelConfig{
+		BaseURL: p.BaseURL,
+		Model:   p.Model,
+	}
+
+	// 设置通用参数
+	if ops.MaxTokens != nil {
+		cfg.MaxTokens = ops.MaxTokens
+	}
+	if ops.Temperature != nil {
+		tempFloat := float64(*ops.Temperature)
+		cfg.Temperature = &tempFloat
+	}
+	if ops.TopP != nil {
+		topPFloat := float64(*ops.TopP)
+		cfg.TopP = &topPFloat
+	}
+	cfg.Stop = ops.Stop
+
+	// 设置超时
+	if p.TimeoutMs != nil {
+		cfg.Timeout = time.Duration(*p.TimeoutMs) * time.Millisecond
+	} else {
+		cfg.Timeout = 60 * time.Second // 默认60秒
+	}
+
+	// 设置内部协议特有的认证和配置参数
+	if internalCfg := p.ProtocolConfigInternal; internalCfg != nil {
+		cfg.AIApiCode = internalCfg.AIApiCode
+		cfg.AIAppKey = internalCfg.AIAppKey
+		cfg.CallerToken = internalCfg.CallerToken
+		cfg.Description = internalCfg.Description
+		cfg.ProcessCode = internalCfg.ProcessCode
+		cfg.AppID = internalCfg.AppID
+		cfg.AccessToken = internalCfg.AccessToken
+	} else {
+		return nil, errors.New("protocol_config_internal is required for internal protocol")
+	}
+
+	return internal.NewChatModel(ctx, cfg)
 }
