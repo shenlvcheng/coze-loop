@@ -220,8 +220,10 @@ func (c *ChatModel) Stream(ctx context.Context, input []*schema.Message, opts ..
 func (c *ChatModel) buildRequestBody(input []*schema.Message, stream bool) map[string]interface{} {
 	messages := make([]map[string]interface{}, 0, len(input))
 	for _, msg := range input {
+		// 显式将 Role 转换为字符串，确保传递 "system", "user", "assistant" 等字符串值
+		roleStr := string(msg.Role)
 		messages = append(messages, map[string]interface{}{
-			"role":    msg.Role,
+			"role":    roleStr,
 			"content": msg.Content,
 		})
 	}
