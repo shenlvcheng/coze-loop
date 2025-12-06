@@ -221,13 +221,15 @@ func newComponent(ctx context.Context) (*component, error) {
 	}
 
 	ckDb, err := ck.NewCKFromConfig(&ck.Config{
-		Host:        fmt.Sprintf("%s:%s", getClickhouseDomain(), getClickhousePort()),
-		Username:    getClickhouseUser(),
-		Password:    getClickhousePassword(),
-		Database:    getClickhouseDatabase(),
-		Protocol:    ck.ProtocolNative,
-		DialTimeout: time.Duration(componentConfig.CKConfig.DialTimeout) * time.Second,
-		ReadTimeout: time.Duration(componentConfig.CKConfig.ReadTimeout) * time.Second,
+		Host:              fmt.Sprintf("%s:%s", getClickhouseDomain(), getClickhousePort()),
+		Username:          getClickhouseUser(),
+		Password:          getClickhousePassword(),
+		Database:          getClickhouseDatabase(),
+		CompressionMethod: ck.CompressionMethodLZ4,
+		CompressionLevel:  3,
+		Protocol:          ck.ProtocolNative,
+		DialTimeout:       time.Duration(componentConfig.CKConfig.DialTimeout) * time.Second,
+		ReadTimeout:       time.Duration(componentConfig.CKConfig.ReadTimeout) * time.Second,
 	})
 	if err != nil {
 		return nil, err
