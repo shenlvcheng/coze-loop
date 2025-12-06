@@ -54,7 +54,16 @@ func (c *configer) GetExptTurnResultFilterBmqProducerCfg(ctx context.Context) *e
 }
 
 func (c *configer) GetCKDBName(ctx context.Context) *entity.CKDBConfig {
-	return nil
+	const key = "ck_db_config"
+	var cfg *entity.CKDBConfig
+	if err := c.loader.UnmarshalKey(ctx, key, &cfg); err != nil || cfg == nil {
+		// 返回默认配置，避免空指针
+		return &entity.CKDBConfig{
+			ExptTurnResultFilterDBName: "default",
+			DatasetItemsSnapshotDBName: "default",
+		}
+	}
+	return cfg
 }
 
 func (c *configer) GetExptExportWhiteList(ctx context.Context) (eec *entity.ExptExportWhiteList) {
