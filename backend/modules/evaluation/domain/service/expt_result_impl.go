@@ -1588,6 +1588,7 @@ func (e ExptResultServiceImpl) ManualUpsertExptTurnResultFilter(ctx context.Cont
 	if err = e.publisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
 		ExperimentID: exptID,
 		SpaceID:      spaceID,
+		Session:      entity.NewSession(ctx),
 	}, gptr.Of(time.Second*3)); err != nil {
 		logs.CtxError(ctx, "Failed to send ExptTurnResultFilterEvent, err: %v", err)
 	}
@@ -1939,6 +1940,7 @@ func (e ExptResultServiceImpl) CompareExptTurnResultFilters(ctx context.Context,
 						ItemID:       []int64{itemID},
 						RetryTimes:   ptr.Of(retryTimes + 1),
 						FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+						Session:      entity.NewSession(ctx),
 					}, ptr.Of(10*time.Second))
 					if err != nil {
 						return err
@@ -1965,6 +1967,7 @@ func (e ExptResultServiceImpl) CompareExptTurnResultFilters(ctx context.Context,
 							ItemID:       []int64{itemID},
 							RetryTimes:   ptr.Of(retryTimes + 1),
 							FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+							Session:      entity.NewSession(ctx),
 						}, ptr.Of(10*time.Second))
 						if err != nil {
 							return err

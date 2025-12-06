@@ -8,6 +8,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
@@ -42,6 +43,16 @@ func (c *ExptTurnResultFilterConsumer) HandleMessage(ctx context.Context, ext *m
 	}
 
 	logs.CtxInfo(ctx, "ExptTurnResultFilterConsumer consume message, event: %v, msg_id: %v", string(body), ext.MsgID)
+
+	// 将 Session 信息注入到 context 中，用于后续权限验证
+	if event.Session != nil && event.Session.UserID != "" {
+		ctx = session.WithCtxUser(ctx, &session.User{
+			ID:    event.Session.UserID,
+			AppID: event.Session.AppID,
+		})
+	} else {
+		logs.CtxWarn(ctx, "ExptTurnResultFilterConsumer: event.Session is nil or UserID is empty, spaceID: %v, exptID: %v", event.SpaceID, event.ExperimentID)
+	}
 
 	upsertExptTurnResultFilterRequest := &expt.UpsertExptTurnResultFilterRequest{
 		WorkspaceID:  ptr.Of(event.SpaceID),

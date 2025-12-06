@@ -228,6 +228,7 @@ func (e ExptAnnotateServiceImpl) SaveAnnotateRecord(ctx context.Context, exptID,
 		ItemID:       []int64{itemID},
 		RetryTimes:   ptr.Of(int32(0)),
 		FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+		Session:      entity.NewSession(ctx),
 	}, ptr.Of(10*time.Second))
 	if err != nil {
 		return err
@@ -259,6 +260,7 @@ func (e ExptAnnotateServiceImpl) UpdateAnnotateRecord(ctx context.Context, itemI
 		ItemID:       []int64{itemID},
 		RetryTimes:   ptr.Of(int32(0)),
 		FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+		Session:      entity.NewSession(ctx),
 	}, ptr.Of(10*time.Second))
 	if err != nil {
 		return err

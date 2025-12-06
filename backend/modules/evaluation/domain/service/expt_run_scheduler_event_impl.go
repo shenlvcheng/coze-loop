@@ -306,6 +306,7 @@ func (e *ExptSchedulerImpl) recordEvalItemRunLogs(ctx context.Context, event *en
 		}),
 		RetryTimes: ptr.Of(int32(0)),
 		FilterType: ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+		Session:    entity.NewSession(ctx),
 	}, ptr.Of(10*time.Second))
 	if err != nil {
 		return err

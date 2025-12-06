@@ -110,10 +110,14 @@ func (s *EvaluatorRecordServiceImpl) CorrectEvaluatorRecord(ctx context.Context,
 		}
 	}
 
+	// 从 context 中获取 Session 信息
+	sess := entity.NewSession(ctx)
+
 	if err = s.exptPublisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
 		ExperimentID: evaluatorRecordDO.ExperimentID,
 		SpaceID:      evaluatorRecordDO.SpaceID,
 		ItemID:       []int64{evaluatorRecordDO.ItemID},
+		Session:      sess,
 	}, nil); err != nil {
 		logs.CtxError(ctx, "Failed to send ExptTurnResultFilterEvent, err: %v", err)
 	}
@@ -124,6 +128,7 @@ func (s *EvaluatorRecordServiceImpl) CorrectEvaluatorRecord(ctx context.Context,
 		ItemID:       []int64{evaluatorRecordDO.ItemID},
 		RetryTimes:   ptr.Of(int32(0)),
 		FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+		Session:      sess,
 	}, ptr.Of(10*time.Second))
 	if err != nil {
 		return err
