@@ -9,6 +9,7 @@ import (
 
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/service/llmimpl/eino"
+	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/service/llmimpl/zhiyumodel"
 	"github.com/coze-dev/coze-loop/backend/modules/llm/domain/service/llminterface"
 	llm_errorx "github.com/coze-dev/coze-loop/backend/modules/llm/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
@@ -24,6 +25,11 @@ type FactoryImpl struct{}
 var _ IFactory = (*FactoryImpl)(nil)
 
 func (f *FactoryImpl) CreateLLM(ctx context.Context, model *entity.Model, opts ...entity.Option) (llminterface.ILLM, error) {
+	// 智谕模型使用独立的实现，不走 Eino 框架
+	if model.Protocol == entity.ProtocolZhiyuModel {
+		return zhiyumodel.NewLLM(ctx, model, opts...)
+	}
+
 	// 根据frame和protocol导航到不同的frame factory
 	frame, err := f.getFrameByModel(model)
 	if err != nil {

@@ -29,3 +29,44 @@ models:
           min: "0.001"
           max: "1.0"
           default_val: "0.7"
+
+  - id: 2
+    name: "zhiyu-qwen"
+    frame: "eino"
+    protocol: "zhiyumodel"
+    ability:
+      function_call: true
+    protocol_config:
+      base_url: "http://10.32.41.228:39080"
+      model: "qwen"
+      protocol_config_zhiyumodel:
+        ai_api_code: "7xU7Aa1IMj"
+        ai_app_key: "VCRZouogAZ"
+        caller_token: "RxZ9lJpP8I"
+        description: "您的使用渠道"
+        process_code: "7xU7Aa1IMj"
+        app_id: "109110100301"
+        access_token: "2526170e9a4d474c9ccff8c5a7ee323b"
+    param_config:
+      param_schemas:
+        - name: "temperature"
+          label: "temperature"
+          desc: "Increasing temperature makes model output more diverse and creative, while decreasing it makes output more focused on instructions but less diverse."
+          type: "float"
+          min: "0"
+          max: "1.0"
+          default_val: "0.7"
+        - name: "max_tokens"
+          label: "max_tokens"
+          desc: "Controls the maximum number of tokens in model output."
+          type: "int"
+          min: "1"
+          max: "4096"
+          default_val: "2048"
+        - name: "top_p"
+          label: "top_p"
+          desc: "Selects the minimum token set with cumulative probability reaching top_p during generation."
+          type: "float"
+          min: "0.001"
+          max: "1.0"
+          default_val: "0.7"

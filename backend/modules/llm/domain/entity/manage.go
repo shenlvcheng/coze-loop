@@ -170,7 +170,8 @@ type ProtocolConfig struct {
 	ProtocolConfigOllama   *ProtocolConfigOllama   `json:"protocol_config_ollama" yaml:"protocol_config_ollama" mapstructure:"protocol_config_ollama"`
 	ProtocolConfigQwen     *ProtocolConfigQwen     `json:"protocol_config_qwen" yaml:"protocol_config_qwen" mapstructure:"protocol_config_qwen"`
 	ProtocolConfigQianfan  *ProtocolConfigQianfan  `json:"protocol_config_qianfan" yaml:"protocol_config_qianfan" mapstructure:"protocol_config_qianfan"`
-	ProtocolConfigArkBot   *ProtocolConfigArkBot   `json:"protocol_config_ark_bot" yaml:"protocol_config_ark_bot" mapstructure:"protocol_config_ark_bot"`
+	ProtocolConfigArkBot       *ProtocolConfigArkBot       `json:"protocol_config_ark_bot" yaml:"protocol_config_ark_bot" mapstructure:"protocol_config_ark_bot"`
+	ProtocolConfigZhiyuModel   *ProtocolConfigZhiyuModel   `json:"protocol_config_zhiyumodel" yaml:"protocol_config_zhiyumodel" mapstructure:"protocol_config_zhiyumodel"`
 }
 
 type ProtocolConfigArk struct {
@@ -238,6 +239,19 @@ type ProtocolConfigArkBot struct {
 	SecretKey     string            `json:"secret_key" yaml:"secret_key" mapstructure:"secret_key"`
 	RetryTimes    *int64            `json:"retry_times" yaml:"retry_times" mapstructure:"retry_times"`
 	CustomHeaders map[string]string `json:"custom_headers" yaml:"custom_headers" mapstructure:"custom_headers"`
+}
+
+// ProtocolConfigZhiyuModel 智谕模型协议配置
+type ProtocolConfigZhiyuModel struct {
+	// Header 认证参数
+	AIAPICode   string `json:"ai_api_code" yaml:"ai_api_code" mapstructure:"ai_api_code"`
+	AIAppKey    string `json:"ai_app_key" yaml:"ai_app_key" mapstructure:"ai_app_key"`
+	CallerToken string `json:"caller_token" yaml:"caller_token" mapstructure:"caller_token"`
+	Description string `json:"description" yaml:"description" mapstructure:"description"`
+	// Body 额外参数
+	ProcessCode string `json:"process_code" yaml:"process_code" mapstructure:"process_code"`
+	AppID       string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`
 }
 
 type ScenarioConfig struct {
@@ -361,7 +375,8 @@ const (
 	ProtocolGemini   Protocol = "gemini"
 	ProtocolQwen     Protocol = "qwen"
 	ProtocolQianfan  Protocol = "qianfan"
-	ProtocolArkBot   Protocol = "arkbot"
+	ProtocolArkBot     Protocol = "arkbot"
+	ProtocolZhiyuModel Protocol = "zhiyumodel"
 )
 
 type ListModelReq struct {
