@@ -226,19 +226,19 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 		switch f.Op {
 		case "=":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data{'%s'} = ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data['%s'] = ?", f.Key)
 			*args = append(*args, f.Values[0])
 		case "LIKE":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data{'%s'} LIKE ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data['%s'] LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "NOT LIKE":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data{'%s'} NOT LIKE ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data['%s'] NOT LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "!=":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data{'%s'}!=?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.eval_target_data['%s']!=?", f.Key)
 			*args = append(*args, f.Values[0])
 		}
 	}
@@ -251,7 +251,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND abs(etrf.evaluator_score{'%s'} - ?) < %g", f.Key, floatEpsilon)
+			*whereSQL += fmt.Sprintf(" AND abs(etrf.evaluator_score['%s'] - ?) < %g", f.Key, floatEpsilon)
 			*args = append(*args, floatValue)
 		case ">", ">=", "<", "<=", "!=":
 			floatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -260,7 +260,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.evaluator_score{'%s'} %s ?", f.Key, f.Op)
+			*whereSQL += fmt.Sprintf(" AND etrf.evaluator_score['%s'] %s ?", f.Key, f.Op)
 			*args = append(*args, floatValue)
 		case "BETWEEN":
 			floatValue1, err1 := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -270,7 +270,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.evaluator_score{'%s'} BETWEEN ? AND ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.evaluator_score['%s'] BETWEEN ? AND ?", f.Key)
 			*args = append(*args, floatValue1, floatValue2)
 		}
 	}
@@ -283,7 +283,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND abs(etrf.annotation_float{'%s'} - ?) < %g", f.Key, floatEpsilon)
+			*whereSQL += fmt.Sprintf(" AND abs(etrf.annotation_float['%s'] - ?) < %g", f.Key, floatEpsilon)
 			*args = append(*args, floatValue)
 		case ">", ">=", "<", "<=", "!=":
 			floatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -292,7 +292,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_float{'%s'} %s ?", f.Key, f.Op)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_float['%s'] %s ?", f.Key, f.Op)
 			*args = append(*args, floatValue)
 		case "BETWEEN":
 			floatValue1, err1 := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -302,7 +302,7 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 				continue
 			}
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_float{'%s'} BETWEEN ? AND ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_float['%s'] BETWEEN ? AND ?", f.Key)
 			*args = append(*args, floatValue1, floatValue2)
 		}
 	}
@@ -311,29 +311,29 @@ func (d *exptTurnResultFilterDAOImpl) buildMapFieldConditions(cond *ExptTurnResu
 		switch f.Op {
 		case "=":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'} = ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s'] = ?", f.Key)
 			*args = append(*args, f.Values[0])
 		case "LIKE":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'} LIKE ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s'] LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "NOT LIKE":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'} NOT LIKE ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s'] NOT LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "!=":
 			// 删除 mapContains 条件
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'}!=?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s']!=?", f.Key)
 			*args = append(*args, f.Values[0])
 
 			// tag_value_id
 		case "in", "IN":
 			//*whereSQL += " AND etrf.annotation_string IN ?"
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'} IN ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s'] IN ?", f.Key)
 			*args = append(*args, f.Values)
 		case "NOT IN":
 			//*whereSQL += " AND etrf.annotation_string NOT IN?"
-			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string{'%s'} NOT IN ?", f.Key)
+			*whereSQL += fmt.Sprintf(" AND etrf.annotation_string['%s'] NOT IN ?", f.Key)
 			*args = append(*args, f.Values)
 		}
 	}
@@ -353,7 +353,7 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 				continue
 			}
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND abs(dis.float_map{'%s'} - ?) < %g", f.Key, floatEpsilon)
+			*joinSQL += fmt.Sprintf(" AND abs(dis.float_map['%s'] - ?) < %g", f.Key, floatEpsilon)
 			*args = append(*args, floatValue)
 		case ">", ">=", "<", "<=", "!=":
 			floatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -362,7 +362,7 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 				continue
 			}
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.float_map{'%s'} %s ?", f.Key, f.Op)
+			*joinSQL += fmt.Sprintf(" AND dis.float_map['%s'] %s ?", f.Key, f.Op)
 			*args = append(*args, floatValue)
 		case "BETWEEN":
 			floatValue1, err1 := strconv.ParseFloat(fmt.Sprintf("%v", f.Values[0]), 64)
@@ -372,7 +372,7 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 				continue
 			}
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.float_map{'%s'} BETWEEN ? AND ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.float_map['%s'] BETWEEN ? AND ?", f.Key)
 			*args = append(*args, floatValue1, floatValue2)
 		}
 	}
@@ -381,11 +381,11 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 		switch f.Op {
 		case "=", ">", ">=", "<", "<=", "!=":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.int_map{'%s'} %s ?", f.Key, f.Op)
+			*joinSQL += fmt.Sprintf(" AND dis.int_map['%s'] %s ?", f.Key, f.Op)
 			*args = append(*args, f.Values[0])
 		case "BETWEEN":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.int_map{'%s'} BETWEEN ? AND ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.int_map['%s'] BETWEEN ? AND ?", f.Key)
 			*args = append(*args, f.Values[0], f.Values[1])
 		}
 	}
@@ -403,7 +403,7 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 				intBoolValue = 1
 			}
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.bool_map{'%s'} = ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.bool_map['%s'] = ?", f.Key)
 			*args = append(*args, intBoolValue)
 		case "!=":
 			boolValue, err := strconv.ParseBool(fmt.Sprintf("%v", f.Values[0]))
@@ -416,7 +416,7 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 				intBoolValue = 1
 			}
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.bool_map{'%s'} != ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.bool_map['%s'] != ?", f.Key)
 			*args = append(*args, intBoolValue)
 		default:
 			logs.CtxWarn(context.Background(), "Unsupported operator %s for BoolMapFilters", f.Op)
@@ -428,19 +428,19 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 		switch f.Op {
 		case "LIKE":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} LIKE ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.string_map['%s'] LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "=":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} = ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.string_map['%s'] = ?", f.Key)
 			*args = append(*args, f.Values[0])
 		case "NOT LIKE":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} NOT LIKE ?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.string_map['%s'] NOT LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
 		case "!=":
 			// 删除 mapContains 条件
-			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'}!=?", f.Key)
+			*joinSQL += fmt.Sprintf(" AND dis.string_map['%s']!=?", f.Key)
 			*args = append(*args, f.Values[0])
 		}
 	}
@@ -463,7 +463,7 @@ func (d *exptTurnResultFilterDAOImpl) buildKeywordSearchConditions(ctx context.C
 		for _, f := range cond.KeywordSearch.EvalTargetDataFilters {
 			*keywordCond += " OR "
 			// 删除 mapContains 条件
-			*keywordCond += fmt.Sprintf("etrf.eval_target_data{'%s'} LIKE ?", f.Key)
+			*keywordCond += fmt.Sprintf("etrf.eval_target_data['%s'] LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(kw)+"%")
 		}
 	}
@@ -479,7 +479,7 @@ func (d *exptTurnResultFilterDAOImpl) buildKeywordSearchConditions(ctx context.C
 			}
 			// 删除 mapContains 条件
 			*keywordCond += " OR "
-			*keywordCond += fmt.Sprintf("abs(dis.float_map{'%s'} - ?) < %g", f.Key, floatEpsilon)
+			*keywordCond += fmt.Sprintf("abs(dis.float_map['%s'] - ?) < %g", f.Key, floatEpsilon)
 			*args = append(*args, floatValue)
 		}
 		// int_map
@@ -491,14 +491,14 @@ func (d *exptTurnResultFilterDAOImpl) buildKeywordSearchConditions(ctx context.C
 			}
 			// 删除 mapContains 条件
 			*keywordCond += " OR "
-			*keywordCond += fmt.Sprintf("dis.int_map{'%s'} = ?", f.Key)
+			*keywordCond += fmt.Sprintf("dis.int_map['%s'] = ?", f.Key)
 			*args = append(*args, intValue)
 		}
 		// string_map
 		for _, f := range cond.KeywordSearch.ItemSnapshotFilter.StringMapFilters {
 			*keywordCond += " OR "
 			// 删除 mapContains 条件
-			*keywordCond += fmt.Sprintf("dis.string_map{'%s'} LIKE ?", f.Key)
+			*keywordCond += fmt.Sprintf("dis.string_map['%s'] LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(kw)+"%")
 		}
 		// bool_map
@@ -513,7 +513,7 @@ func (d *exptTurnResultFilterDAOImpl) buildKeywordSearchConditions(ctx context.C
 			for _, f := range cond.KeywordSearch.ItemSnapshotFilter.BoolMapFilters {
 				*keywordCond += " OR "
 				// 删除 mapContains 条件
-				*keywordCond += fmt.Sprintf("dis.bool_map{'%s'} = %d", f.Key, boolVal)
+				*keywordCond += fmt.Sprintf("dis.bool_map['%s'] = %d", f.Key, boolVal)
 			}
 		}
 	}
@@ -660,17 +660,17 @@ func (d *exptTurnResultFilterDAOImpl) buildGetByExptIDItemIDsSQL(ctx context.Con
 		"etrf.status, " +
 		"etrf.eval_set_version_id, " +
 		"etrf.created_date, " +
-		"etrf.eval_target_data{'actual_output'} as actual_output, " +
-		"etrf.evaluator_score{'key1'} as evaluator_score_key_1, " +
-		"etrf.evaluator_score{'key2'} as evaluator_score_key_2, " +
-		"etrf.evaluator_score{'key3'} as evaluator_score_key_3, " +
-		"etrf.evaluator_score{'key4'} as evaluator_score_key_4, " +
-		"etrf.evaluator_score{'key5'} as evaluator_score_key_5, " +
-		"etrf.evaluator_score{'key6'} as evaluator_score_key_6, " +
-		"etrf.evaluator_score{'key7'} as evaluator_score_key_7, " +
-		"etrf.evaluator_score{'key8'} as evaluator_score_key_8, " +
-		"etrf.evaluator_score{'key9'} as evaluator_score_key_9, " +
-		"etrf.evaluator_score{'key10'} as evaluator_score_key_10, " +
+		"etrf.eval_target_data['actual_output'] as actual_output, " +
+		"etrf.evaluator_score['key1'] as evaluator_score_key_1, " +
+		"etrf.evaluator_score['key2'] as evaluator_score_key_2, " +
+		"etrf.evaluator_score['key3'] as evaluator_score_key_3, " +
+		"etrf.evaluator_score['key4'] as evaluator_score_key_4, " +
+		"etrf.evaluator_score['key5'] as evaluator_score_key_5, " +
+		"etrf.evaluator_score['key6'] as evaluator_score_key_6, " +
+		"etrf.evaluator_score['key7'] as evaluator_score_key_7, " +
+		"etrf.evaluator_score['key8'] as evaluator_score_key_8, " +
+		"etrf.evaluator_score['key9'] as evaluator_score_key_9, " +
+		"etrf.evaluator_score['key10'] as evaluator_score_key_10, " +
 		"etrf.evaluator_score_corrected " +
 		"FROM " + d.configer.GetCKDBName(ctx).ExptTurnResultFilterDBName + ".expt_turn_result_filter etrf " +
 		"WHERE etrf.space_id = ? AND etrf.expt_id = ? AND etrf.created_date =?"
