@@ -672,7 +672,7 @@ func (d *exptTurnResultFilterDAOImpl) buildGetByExptIDItemIDsSQL(ctx context.Con
 		"etrf.evaluator_score['key9'] as evaluator_score_key_9, " +
 		"etrf.evaluator_score['key10'] as evaluator_score_key_10, " +
 		"etrf.evaluator_score_corrected " +
-		"FROM `" + d.configer.GetCKDBName(ctx).ExptTurnResultFilterDBName + "`.expt_turn_result_filter etrf " +
+		"FROM `" + d.configer.GetCKDBName(ctx).ExptTurnResultFilterDBName + "`.`expt_turn_result_filter` AS etrf " +
 		"WHERE etrf.space_id = ? AND etrf.expt_id = ? AND etrf.created_date =?"
 	if len(itemIDs) > 0 {
 		sql += " AND etrf.item_id IN (?)"
