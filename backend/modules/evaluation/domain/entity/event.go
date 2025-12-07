@@ -113,6 +113,8 @@ type ExptTurnResultFilterEvent struct {
 
 	RetryTimes *int32
 	FilterType *UpsertExptTurnResultFilterType
+
+	Session *Session // 用于消费者鉴权
 }
 
 type ExportCSVEvent struct {

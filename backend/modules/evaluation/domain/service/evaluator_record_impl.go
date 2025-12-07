@@ -110,10 +110,14 @@ func (s *EvaluatorRecordServiceImpl) CorrectEvaluatorRecord(ctx context.Context,
 		}
 	}
 
+	// 从 context 获取用户信息用于消费者鉴权
+	eventSession := getSessionFromCtx(ctx)
+
 	if err = s.exptPublisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
 		ExperimentID: evaluatorRecordDO.ExperimentID,
 		SpaceID:      evaluatorRecordDO.SpaceID,
 		ItemID:       []int64{evaluatorRecordDO.ItemID},
+		Session:      eventSession,
 	}, nil); err != nil {
 		logs.CtxError(ctx, "Failed to send ExptTurnResultFilterEvent, err: %v", err)
 	}
@@ -124,6 +128,7 @@ func (s *EvaluatorRecordServiceImpl) CorrectEvaluatorRecord(ctx context.Context,
 		ItemID:       []int64{evaluatorRecordDO.ItemID},
 		RetryTimes:   ptr.Of(int32(0)),
 		FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+		Session:      eventSession,
 	}, ptr.Of(10*time.Second))
 	if err != nil {
 		return err
@@ -143,4 +148,16 @@ func (s *EvaluatorRecordServiceImpl) BatchGetEvaluatorRecord(ctx context.Context
 	}
 	s.userInfoService.PackUserInfo(ctx, userinfo.BatchConvertDO2UserInfoDomainCarrier(records))
 	return records, nil
+}
+
+// getSessionFromCtx 从 context 获取用户信息，用于消费者鉴权
+func getSessionFromCtx(ctx context.Context) *entity.Session {
+	userID := session.UserIDInCtxOrEmpty(ctx)
+	if userID == "" {
+		return nil
+	}
+	return &entity.Session{
+		UserID: userID,
+		AppID:  session.AppIDInCtxOrEmpty(ctx),
+	}
 }

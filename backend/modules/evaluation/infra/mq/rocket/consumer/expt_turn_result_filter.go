@@ -8,6 +8,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
@@ -42,6 +43,11 @@ func (c *ExptTurnResultFilterConsumer) HandleMessage(ctx context.Context, ext *m
 	}
 
 	logs.CtxInfo(ctx, "ExptTurnResultFilterConsumer consume message, event: %v, msg_id: %v", string(body), ext.MsgID)
+
+	// 链路中调用接口会依赖 ctx userID 鉴权
+	if event.Session != nil && len(event.Session.UserID) > 0 {
+		ctx = session.WithCtxUser(ctx, &session.User{ID: event.Session.UserID})
+	}
 
 	upsertExptTurnResultFilterRequest := &expt.UpsertExptTurnResultFilterRequest{
 		WorkspaceID:  ptr.Of(event.SpaceID),
