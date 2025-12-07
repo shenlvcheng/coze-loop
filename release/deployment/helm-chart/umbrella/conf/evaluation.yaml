@@ -2239,5 +2239,5 @@ expt_export_white_list:
   allow_all: true
 
 ck_db_config:
-  expt_turn_result_filter_db_name: "default"
-  dataset_items_snapshot_db_name: "default"
+  expt_turn_result_filter_db_name: "cozeloop-clickhouse"
+  dataset_items_snapshot_db_name: "cozeloop-clickhouse"

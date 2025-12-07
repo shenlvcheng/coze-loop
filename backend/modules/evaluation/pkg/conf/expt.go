@@ -59,8 +59,8 @@ func (c *configer) GetCKDBName(ctx context.Context) *entity.CKDBConfig {
 	if err := c.loader.UnmarshalKey(ctx, key, &cfg); err != nil || cfg == nil {
 		// 返回默认配置，避免空指针
 		return &entity.CKDBConfig{
-			ExptTurnResultFilterDBName: "default",
-			DatasetItemsSnapshotDBName: "default",
+			ExptTurnResultFilterDBName: "cozeloop-clickhouse",
+			DatasetItemsSnapshotDBName: "cozeloop-clickhouse",
 		}
 	}
 	return cfg
