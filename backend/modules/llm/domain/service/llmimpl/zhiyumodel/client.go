@@ -196,9 +196,10 @@ func (c *Client) buildRequest(messages []*entity.Message, stream bool, options *
 		req.Temperature = c.config.Temperature
 	}
 
-	if options.TopP != nil {
+	// top_p 必须在 (0.0, 1.0] 范围内，否则不发送
+	if options.TopP != nil && *options.TopP > 0 && *options.TopP <= 1 {
 		req.TopP = options.TopP
-	} else if c.config.TopP != nil {
+	} else if c.config.TopP != nil && *c.config.TopP > 0 && *c.config.TopP <= 1 {
 		req.TopP = c.config.TopP
 	}
 

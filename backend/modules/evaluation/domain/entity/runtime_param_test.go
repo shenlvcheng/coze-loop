@@ -18,7 +18,7 @@ func TestPromptRuntimeParam_GetJSONDemo(t *testing.T) {
 	assert.Contains(t, demo, "model_config")
 	assert.Contains(t, demo, "max_tokens")
 	assert.Contains(t, demo, "temperature")
-	assert.Contains(t, demo, "top_p")
+	// top_p 不再包含在 demo 中，避免传入无效值 0
 	assert.Contains(t, demo, "json_ext")
 }
 

@@ -46,8 +46,9 @@ func (p *PromptRuntimeParam) GetJSONDemo() string {
 			ModelConfig: &ModelConfig{
 				MaxTokens:   gptr.Of(int32(0)),
 				Temperature: gptr.Of(float64(0)),
-				TopP:        gptr.Of(float64(0)),
-				JSONExt:     gptr.Of("{}"),
+				// TopP 不设置默认值，避免传入无效值 0 导致模型调用失败
+				// top_p 必须在 (0.0, 1.0] 范围内
+				JSONExt: gptr.Of("{}"),
 			},
 		})
 		promptRuntimeParamDemo = string(bytes)
