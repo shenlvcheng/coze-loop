@@ -122,7 +122,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     if (!schemas) return [];
     return schemas.map(schema => ({
       key: schema.key || '',
-      name: schema.name || schema.key || '',
+      name: schema.key || '',
       text_schema: schema.json_schema,
     })) as FieldSchema[];
   }, [workflowDetailService.data]);
