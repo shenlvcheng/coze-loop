@@ -4,6 +4,11 @@ import { useLayoutEffect } from 'react';
 
 import { type EvalTargetDefinition } from '../../types/evaluate-target';
 import { promptEvalTargetDefinitionPayload } from './prompt-definition/const';
+// --------------start----------------------
+// 新增代码人: Cascade
+// 新增代码原因: 智宇工作流评估功能 - 导入工作流定义
+import { workflowEvalTargetDefinitionPayload } from './workflow-definition/const';
+// --------------end-----------------------
 // import { evalSetDefinitionPayload } from './eval-set-definition/const';
 
 // 根据 type 注册
@@ -40,6 +45,11 @@ const getEvalTargetDefinitionList = () =>
 export const useEvalTargetDefinition = () => {
   useLayoutEffect(() => {
     registerEvalTargetDefinition(promptEvalTargetDefinitionPayload);
+    // --------------start----------------------
+    // 新增代码人: Cascade
+    // 新增代码原因: 智宇工作流评估功能 - 注册工作流定义
+    registerEvalTargetDefinition(workflowEvalTargetDefinitionPayload);
+    // --------------end-----------------------
     // registerEvalTargetDefinition(evalSetDefinitionPayload);
   }, []);
 

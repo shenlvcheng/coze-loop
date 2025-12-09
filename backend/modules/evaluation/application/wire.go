@@ -64,6 +64,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/llm"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/prompt"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/tag"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/workflow"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/runtime"
 	evalconf "github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/conf"
 	"github.com/coze-dev/coze-loop/backend/pkg/conf"
@@ -192,6 +193,8 @@ var (
 		domainservice.NewEvalTargetServiceImpl,
 		NewSourceTargetOperators,
 		prompt.NewPromptRPCAdapter,
+		workflow.NewWorkflowRPCAdapter,
+		evalconf.NewWorkflowConfiger,
 		targetrepo.NewEvalTargetRepo,
 		mysql.NewEvalTargetDAO,
 		mysql.NewEvalTargetRecordDAO,
@@ -207,9 +210,10 @@ var (
 	)
 )
 
-func NewSourceTargetOperators(adapter rpc.IPromptRPCAdapter) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
+func NewSourceTargetOperators(promptAdapter rpc.IPromptRPCAdapter, workflowAdapter rpc.IWorkflowRPCAdapter) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
 	return map[entity.EvalTargetType]service.ISourceEvalTargetOperateService{
-		entity.EvalTargetTypeLoopPrompt: service.NewPromptSourceEvalTargetServiceImpl(adapter),
+		entity.EvalTargetTypeLoopPrompt:   service.NewPromptSourceEvalTargetServiceImpl(promptAdapter),
+		entity.EvalTargetTypeCozeWorkflow: service.NewWorkflowSourceEvalTargetServiceImpl(workflowAdapter),
 	}
 }
 
@@ -280,15 +284,20 @@ func InitEvaluationSetApplication(client datasetservice.Client,
 	return nil
 }
 
+// --------------start----------------------
+// 新增代码人: Cascade
+// 新增代码原因: 智宇工作流评估功能 - 添加configFactory参数用于工作流配置
 func InitEvalTargetApplication(ctx context.Context,
 	idgen idgen.IIDGenerator,
 	db db.Provider,
+	configFactory conf.IConfigLoaderFactory,
 	client promptmanageservice.Client,
 	executeClient promptexecuteservice.Client,
 	authClient authservice.Client,
 	cmdable redis.Cmdable,
 	meter metrics.Meter,
 ) evaluation.EvalTargetService {
+// --------------end-----------------------
 	wire.Build(
 		evalTargetSet,
 	)
