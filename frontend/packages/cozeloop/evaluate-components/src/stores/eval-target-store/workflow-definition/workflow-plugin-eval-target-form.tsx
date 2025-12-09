@@ -10,7 +10,6 @@ import { useEffect, useMemo } from 'react';
 import { isEmpty } from 'lodash-es';
 import { useDebounceFn, useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
-import { BaseSearchSelect } from '@cozeloop/components';
 import { useSpace } from '@cozeloop/biz-hooks-adapter';
 import { EvalTargetType, type FieldSchema } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';

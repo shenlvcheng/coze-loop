@@ -14,6 +14,9 @@ import { type CreateExperimentValues } from '../../../types/evaluate-target';
  * 智宇工作流评测对象视图
  */
 export const WorkflowEvalTargetView = (props: {
+  /** 渲染数据 */
+  values: CreateExperimentValues;
+  /** 表单数据 */
   formValues: CreateExperimentValues;
 }) => {
   const { formValues } = props;
