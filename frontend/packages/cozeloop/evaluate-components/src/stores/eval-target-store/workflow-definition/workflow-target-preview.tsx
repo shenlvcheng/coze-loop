@@ -5,7 +5,6 @@
 // 新增代码人: Cascade
 // 新增代码原因: 智宇工作流评估功能 - 工作流预览组件
 
-import { I18n } from '@cozeloop/i18n-adapter';
 import { type EvalTarget } from '@cozeloop/api-schema/evaluation';
 import { Typography, Tag } from '@coze-arch/coze-design';
 
@@ -27,7 +26,7 @@ const WorkflowTargetPreview = ({ evalTarget }: WorkflowTargetPreviewProps) => {
             {workflow?.name || workflow?.id || '-'}
           </Typography.Text>
           <Tag color="cyan" size="small">
-            {I18n.t('zhiyu_workflow', '智宇工作流')}
+            智宇工作流
           </Tag>
         </div>
       }

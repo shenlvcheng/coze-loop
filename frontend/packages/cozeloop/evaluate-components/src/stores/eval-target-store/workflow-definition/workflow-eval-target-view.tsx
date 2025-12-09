@@ -38,7 +38,7 @@ export const WorkflowEvalTargetView = (props: {
             {I18n.t('type')}
           </div>
           <div className="text-sm font-normal coz-fg-primary">
-            {I18n.t('zhiyu_workflow', '智宇工作流')}
+            智宇工作流
           </div>
         </div>
         <div className="flex-1 w-0 mb-4">

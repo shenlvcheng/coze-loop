@@ -6,17 +6,18 @@
 // 新增代码原因: 智宇工作流评估功能 - 字段映射预览组件
 
 import { I18n } from '@cozeloop/i18n-adapter';
-import { type FieldSchema } from '@cozeloop/api-schema/evaluation';
 
-import { ReadonlyItem, EqualItem } from '../../../components/column-item-map';
+import { type CreateExperimentValues } from '@/types/evaluate-target';
+import { ReadonlyMappingItem } from '@/components/mapping-item-field/readonly-mapping-item';
 
-interface WorkflowFieldMappingPreviewProps {
-  evalTargetMapping?: Record<string, FieldSchema>;
-}
+export function WorkflowFieldMappingPreview({
+  createExperimentValues,
+}: {
+  /** 渲染数据 */
+  createExperimentValues: CreateExperimentValues;
+}) {
+  const { evalTargetMapping } = createExperimentValues ?? {};
 
-export const WorkflowFieldMappingPreview = ({
-  evalTargetMapping,
-}: WorkflowFieldMappingPreviewProps) => {
   if (!evalTargetMapping) {
     return null;
   }
@@ -24,24 +25,21 @@ export const WorkflowFieldMappingPreview = ({
   const mappingEntries = Object.entries(evalTargetMapping);
 
   if (mappingEntries.length === 0) {
-    return <div className="text-gray-400">{I18n.t('no_field_mapping')}</div>;
+    return null;
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {mappingEntries.map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2">
-          <ReadonlyItem title={I18n.t('evaluation_object')} value={key} typeText="String" />
-          <EqualItem />
-          <ReadonlyItem
-            title={I18n.t('evaluation_set')}
-            value={value?.name || '-'}
-            typeText={value?.text_schema ? JSON.parse(value.text_schema)?.type : 'String'}
-          />
-        </div>
+    <div className="flex flex-col gap-3">
+      {mappingEntries.map(([key, optionSchema]) => (
+        <ReadonlyMappingItem
+          key={key}
+          keyTitle={I18n.t('evaluation_object')}
+          keySchema={{ key, name: key, type: 'string' }}
+          optionSchema={optionSchema}
+        />
       ))}
     </div>
   );
-};
+}
 
 // --------------end-----------------------

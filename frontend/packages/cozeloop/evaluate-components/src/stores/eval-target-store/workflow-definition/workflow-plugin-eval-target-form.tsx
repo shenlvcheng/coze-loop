@@ -160,7 +160,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
           <FormSelect
             className="w-full"
             field="evalTarget"
-            label={I18n.t('workflow_name', '工作流名称')}
+            label="工作流名称"
             placeholder={I18n.t('please_select')}
             rules={[
               { required: true, message: I18n.t('please_select') },
@@ -181,7 +181,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
                   v{sourceTargetVersion}
                 </Tag>
                 <Typography.Text className="text-xs coz-fg-secondary">
-                  {I18n.t('released_version', '发布版')}
+                  发布版
                 </Typography.Text>
               </div>
             </Form.Slot>
