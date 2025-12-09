@@ -33,6 +33,14 @@ const registerEvalTargetDefinition = (item: EvalTargetDefinition) => {
 registerEvalTargetDefinition(promptEvalTargetDefinitionPayload);
 registerEvalTargetDefinition(workflowEvalTargetDefinitionPayload);
 // registerEvalTargetDefinition(evalSetDefinitionPayload);
+
+// 调试日志
+console.log('[EvalTargetDefinition] Registered definitions:', {
+  prompt: promptEvalTargetDefinitionPayload.type,
+  workflow: workflowEvalTargetDefinitionPayload.type,
+  mapSize: evalTargetDefinitionMap.size,
+  keys: Array.from(evalTargetDefinitionMap.keys()),
+});
 // --------------end-----------------------
 
 /**
