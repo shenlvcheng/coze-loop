@@ -119,13 +119,13 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
 
   // 从工作流详情中获取输入参数schema
   const inputSchemas = useMemo(() => {
-    const schemas = workflowDetailService.data?.input_schema;
+    const schemas = workflowDetailService.data?.eval_target_content?.input_schemas;
     if (!schemas) return [];
     return schemas.map(schema => ({
-      name: schema.key || '',
-      type: schema.json_schema ? JSON.parse(schema.json_schema)?.type : 'string',
+      key: schema.key || '',
+      name: schema.name || schema.key || '',
       text_schema: schema.json_schema,
-    })) as (FieldSchema & { type?: string })[];
+    })) as FieldSchema[];
   }, [workflowDetailService.data]);
 
   const handleEvalTargetChange = () => {
