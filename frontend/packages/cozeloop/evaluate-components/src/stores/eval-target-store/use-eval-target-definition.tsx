@@ -1,6 +1,5 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import { useLayoutEffect } from 'react';
 
 import { type EvalTargetDefinition } from '../../types/evaluate-target';
 import { promptEvalTargetDefinitionPayload } from './prompt-definition/const';
@@ -28,6 +27,14 @@ const registerEvalTargetDefinition = (item: EvalTargetDefinition) => {
   };
 };
 
+// --------------start----------------------
+// 新增代码人: Cascade
+// 新增代码原因: 智宇工作流评估功能 - 在模块加载时立即注册定义，确保在组件渲染前就可用
+registerEvalTargetDefinition(promptEvalTargetDefinitionPayload);
+registerEvalTargetDefinition(workflowEvalTargetDefinitionPayload);
+// registerEvalTargetDefinition(evalSetDefinitionPayload);
+// --------------end-----------------------
+
 /**
  * 获取 type 评测对象选择器
  * @param type 评测对象的value
@@ -43,16 +50,6 @@ const getEvalTargetDefinitionList = () =>
  * 评测对象选择器
  */
 export const useEvalTargetDefinition = () => {
-  useLayoutEffect(() => {
-    registerEvalTargetDefinition(promptEvalTargetDefinitionPayload);
-    // --------------start----------------------
-    // 新增代码人: Cascade
-    // 新增代码原因: 智宇工作流评估功能 - 注册工作流定义
-    registerEvalTargetDefinition(workflowEvalTargetDefinitionPayload);
-    // --------------end-----------------------
-    // registerEvalTargetDefinition(evalSetDefinitionPayload);
-  }, []);
-
   return {
     getEvalTargetDefinition,
     registerEvalTargetDefinition,
