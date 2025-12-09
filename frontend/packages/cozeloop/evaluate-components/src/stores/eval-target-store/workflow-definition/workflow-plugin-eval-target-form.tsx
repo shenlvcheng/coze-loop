@@ -17,7 +17,7 @@ import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozInfoCircle } from '@coze-arch/coze-design/icons';
 import { Form, FormSelect, Tag, Tooltip, Typography } from '@coze-arch/coze-design';
 
-import { type PluginEvalTargetFormProps } from '@/types/evaluate-target';
+import { type PluginEvalTargetFormProps, type OptionSchema } from '@/types/evaluate-target';
 import { EvaluateTargetMappingField } from '@/components/selectors/evaluate-target';
 
 const ellipsis = {
@@ -109,7 +109,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
         target_type: EvalTargetType.CozeWorkflow,
         page_size: 1,
       });
-      return res.eval_target_versions?.[0];
+      return res.versions?.[0];
     },
     {
       refreshDeps: [workflowId],
@@ -136,10 +136,10 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   // 当输入参数变化时，初始化字段映射
   useEffect(() => {
     if (inputSchemas?.length > 0) {
-      const payload: Record<string, string> = {};
+      const payload: Record<string, OptionSchema | undefined> = {};
       const currentMapping = formValues?.evalTargetMapping || {};
       inputSchemas.forEach(v => {
-        payload[v?.name || ''] = currentMapping?.[v?.name || ''] || '';
+        payload[v?.name || ''] = currentMapping?.[v?.name || ''] || undefined;
       });
       onChange('evalTargetMapping', payload);
     }

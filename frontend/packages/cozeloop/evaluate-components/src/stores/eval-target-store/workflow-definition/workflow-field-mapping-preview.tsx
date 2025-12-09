@@ -34,7 +34,7 @@ export function WorkflowFieldMappingPreview({
         <ReadonlyMappingItem
           key={key}
           keyTitle={I18n.t('evaluation_object')}
-          keySchema={{ key, name: key, type: 'string' }}
+          keySchema={{ key, name: key }}
           optionSchema={optionSchema}
         />
       ))}
