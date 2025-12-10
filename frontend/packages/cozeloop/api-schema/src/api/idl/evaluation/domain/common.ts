@@ -53,6 +53,10 @@ export interface ArgsSchema {
   support_content_types?: ContentType[],
   /** 序列化后的jsonSchema字符串，例如："{\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"age\": {\"type\": \"integer\"}, \"isStudent\": {\"type\": \"boolean\"}}, \"required\": [\"name\", \"age\", \"isStudent\"]}" */
   json_schema?: string,
+  /** 是否必填 */
+  is_required?: boolean,
+  /** 默认值（有值时显示为Input输入框并预填充） */
+  default_value?: string,
 }
 export interface UserInfo {
   /** 姓名 */
