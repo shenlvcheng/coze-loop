@@ -232,6 +232,60 @@ func (t *WorkflowSourceEvalTargetServiceImpl) ListSourceVersion(ctx context.Cont
 		return nil, "", false, errorx.NewByCode(errno.ResourceNotFoundCode)
 	}
 
+	// 获取工作流详情（包含参数信息）
+	detail, err := t.workflowRPCAdapter.GetWorkflowDetail(ctx, param.SourceTargetID)
+	if err != nil {
+		return nil, "", false, err
+	}
+
+	// 获取默认参数配置
+	defaultParams := t.workflowRPCAdapter.GetDefaultParams(ctx)
+
+	// 构建 InputSchema
+	inputSchemas := make([]*entity.ArgsSchema, 0)
+
+	// 添加4个默认字段
+	inputSchemas = append(inputSchemas,
+		&entity.ArgsSchema{
+			Key:                 gptr.Of("sceneKey"),
+			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
+			JsonSchema:          gptr.Of(`{"type":"string"}`),
+		},
+		&entity.ArgsSchema{
+			Key:                 gptr.Of("processCode"),
+			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
+			JsonSchema:          gptr.Of(`{"type":"string"}`),
+		},
+		&entity.ArgsSchema{
+			Key:                 gptr.Of("appId"),
+			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
+			JsonSchema:          gptr.Of(`{"type":"string"}`),
+		},
+		&entity.ArgsSchema{
+			Key:                 gptr.Of("accessToken"),
+			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
+			JsonSchema:          gptr.Of(`{"type":"string"}`),
+		},
+	)
+
+	// 添加工作流详情中的 globalParams
+	if detail != nil && detail.GlobalParams != nil {
+		for _, p := range detail.GlobalParams {
+			// 跳过与默认字段重复的参数
+			if p.ParamName == "sceneKey" || p.ParamName == "processCode" || p.ParamName == "appId" || p.ParamName == "accessToken" {
+				continue
+			}
+			inputSchemas = append(inputSchemas, &entity.ArgsSchema{
+				Key:                 gptr.Of(p.ParamName),
+				SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
+				JsonSchema:          gptr.Of(valueTypeToJsonSchema(p.ValueType)),
+			})
+		}
+	}
+
+	// 忽略 defaultParams 的使用警告（后续执行时会用到）
+	_ = defaultParams
+
 	versions = []*entity.EvalTargetVersion{
 		{
 			SpaceID:             gptr.Indirect(param.SpaceID),
@@ -244,10 +298,35 @@ func (t *WorkflowSourceEvalTargetServiceImpl) ListSourceVersion(ctx context.Cont
 				AvatarURL:   targetWorkflow.ScenePath,
 				Description: targetWorkflow.Remark,
 			},
+			InputSchema: inputSchemas,
 		},
 	}
 
 	return versions, "", false, nil
+}
+
+// valueTypeToJsonSchema 将智宇工作流的 valueType 转换为 JSON Schema
+func valueTypeToJsonSchema(valueType string) string {
+	switch valueType {
+	case "string":
+		return `{"type":"string"}`
+	case "integer", "int":
+		return `{"type":"integer"}`
+	case "number", "float", "double":
+		return `{"type":"number"}`
+	case "boolean", "bool":
+		return `{"type":"boolean"}`
+	case "array<string>":
+		return `{"type":"array","items":{"type":"string"}}`
+	case "array<integer>", "array<int>":
+		return `{"type":"array","items":{"type":"integer"}}`
+	case "array<number>":
+		return `{"type":"array","items":{"type":"number"}}`
+	case "object":
+		return `{"type":"object"}`
+	default:
+		return `{"type":"string"}`
+	}
 }
 
 // PackSourceInfo 填充源信息

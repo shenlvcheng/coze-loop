@@ -254,6 +254,19 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 	}, nil
 }
 
+// GetDefaultParams 获取默认参数配置
+func (w *WorkflowRPCAdapter) GetDefaultParams(ctx context.Context) *rpc.WorkflowDefaultParams {
+	cfg := w.configer.GetWorkflowConfig(ctx)
+	if cfg == nil {
+		return &rpc.WorkflowDefaultParams{}
+	}
+	return &rpc.WorkflowDefaultParams{
+		ProcessCode: cfg.ProcessCode,
+		AppID:       cfg.AppID,
+		AccessToken: cfg.AccessToken,
+	}
+}
+
 // containsKeyword 检查字符串是否包含关键词
 func containsKeyword(s, keyword string) bool {
 	return len(s) > 0 && len(keyword) > 0 && (s == keyword || len(s) >= len(keyword) && (s[:len(keyword)] == keyword || s[len(s)-len(keyword):] == keyword || findSubstring(s, keyword)))

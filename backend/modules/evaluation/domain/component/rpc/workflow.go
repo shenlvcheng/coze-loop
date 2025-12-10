@@ -21,6 +21,15 @@ type IWorkflowRPCAdapter interface {
 	GetWorkflowDetail(ctx context.Context, sceneKey string) (detail *WorkflowDetail, err error)
 	// ExecuteWorkflow 执行工作流
 	ExecuteWorkflow(ctx context.Context, param *ExecuteWorkflowParam) (result *ExecuteWorkflowResult, err error)
+	// GetDefaultParams 获取默认参数配置（processCode、appId、accessToken）
+	GetDefaultParams(ctx context.Context) *WorkflowDefaultParams
+}
+
+// WorkflowDefaultParams 工作流默认参数
+type WorkflowDefaultParams struct {
+	ProcessCode string // 流程编码
+	AppID       string // 应用ID
+	AccessToken string // 访问令牌
 }
 
 // ListWorkflowsParam 获取工作流列表参数
