@@ -138,6 +138,10 @@ func (e *ExptMangerImpl) checkTargetConnector(ctx context.Context, expt *entity.
 
 	evalSetFieldSchema := gslice.ToMap(expt.EvalSet.EvaluationSetVersion.EvaluationSetSchema.FieldSchemas, func(t *entity.FieldSchema) (string, *entity.FieldSchema) { return t.Name, t })
 	for _, fc := range connectorConf.TargetConf.IngressConf.EvalSetAdapter.FieldConfs {
+		// 如果有 Value（常量值），则跳过 FromField 校验
+		if fc.Value != "" {
+			continue
+		}
 		firstField, err := json.GetFirstJSONPathField(fc.FromField)
 		if err != nil {
 			return errorx.WrapByCode(err, errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: target is expected to receive the missing evalset %v column, json parse error", fc.FromField)))
