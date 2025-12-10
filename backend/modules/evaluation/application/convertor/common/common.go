@@ -241,6 +241,8 @@ func ConvertArgsSchemaDO2DTO(schema *commonentity.ArgsSchema) *commondto.ArgsSch
 		Key:                 schema.Key,
 		SupportContentTypes: contentTypes,
 		JSONSchema:          schema.JsonSchema,
+		IsRequired:          schema.IsRequired,
+		DefaultValue:        schema.DefaultValue,
 	}
 }
 
