@@ -2221,6 +2221,10 @@ type ArgsSchema struct {
 	SupportContentTypes []ContentType `thrift:"support_content_types,2,optional" frugal:"2,optional,list<string>" mapstructure:"support_content_types" form:"support_content_types" json:"support_content_types,omitempty" query:"support_content_types"`
 	// 	序列化后的jsonSchema字符串，例如："{\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"age\": {\"type\": \"integer\"}, \"isStudent\": {\"type\": \"boolean\"}}, \"required\": [\"name\", \"age\", \"isStudent\"]}"
 	JSONSchema *string `thrift:"json_schema,3,optional" frugal:"3,optional,string" mapstructure:"json_schema" form:"json_schema" json:"json_schema,omitempty" query:"json_schema"`
+	// 是否必填
+	IsRequired *bool `thrift:"is_required,4,optional" frugal:"4,optional,bool" mapstructure:"is_required" form:"is_required" json:"is_required,omitempty" query:"is_required"`
+	// 默认值（有值时显示为Input输入框并预填充）
+	DefaultValue *string `thrift:"default_value,5,optional" frugal:"5,optional,string" mapstructure:"default_value" form:"default_value" json:"default_value,omitempty" query:"default_value"`
 }
 
 func NewArgsSchema() *ArgsSchema {
@@ -2265,6 +2269,30 @@ func (p *ArgsSchema) GetJSONSchema() (v string) {
 	}
 	return *p.JSONSchema
 }
+
+var ArgsSchema_IsRequired_DEFAULT bool
+
+func (p *ArgsSchema) GetIsRequired() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIsRequired() {
+		return ArgsSchema_IsRequired_DEFAULT
+	}
+	return *p.IsRequired
+}
+
+var ArgsSchema_DefaultValue_DEFAULT string
+
+func (p *ArgsSchema) GetDefaultValue() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDefaultValue() {
+		return ArgsSchema_DefaultValue_DEFAULT
+	}
+	return *p.DefaultValue
+}
 func (p *ArgsSchema) SetKey(val *string) {
 	p.Key = val
 }
@@ -2274,11 +2302,19 @@ func (p *ArgsSchema) SetSupportContentTypes(val []ContentType) {
 func (p *ArgsSchema) SetJSONSchema(val *string) {
 	p.JSONSchema = val
 }
+func (p *ArgsSchema) SetIsRequired(val *bool) {
+	p.IsRequired = val
+}
+func (p *ArgsSchema) SetDefaultValue(val *string) {
+	p.DefaultValue = val
+}
 
 var fieldIDToName_ArgsSchema = map[int16]string{
 	1: "key",
 	2: "support_content_types",
 	3: "json_schema",
+	4: "is_required",
+	5: "default_value",
 }
 
 func (p *ArgsSchema) IsSetKey() bool {
@@ -2291,6 +2327,14 @@ func (p *ArgsSchema) IsSetSupportContentTypes() bool {
 
 func (p *ArgsSchema) IsSetJSONSchema() bool {
 	return p.JSONSchema != nil
+}
+
+func (p *ArgsSchema) IsSetIsRequired() bool {
+	return p.IsRequired != nil
+}
+
+func (p *ArgsSchema) IsSetDefaultValue() bool {
+	return p.DefaultValue != nil
 }
 
 func (p *ArgsSchema) Read(iprot thrift.TProtocol) (err error) {
@@ -2330,6 +2374,22 @@ func (p *ArgsSchema) Read(iprot thrift.TProtocol) (err error) {
 		case 3:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2409,6 +2469,28 @@ func (p *ArgsSchema) ReadField3(iprot thrift.TProtocol) error {
 	p.JSONSchema = _field
 	return nil
 }
+func (p *ArgsSchema) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.IsRequired = _field
+	return nil
+}
+func (p *ArgsSchema) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DefaultValue = _field
+	return nil
+}
 
 func (p *ArgsSchema) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -2426,6 +2508,14 @@ func (p *ArgsSchema) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField3(oprot); err != nil {
 			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
 			goto WriteFieldError
 		}
 	}
@@ -2508,6 +2598,42 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
+func (p *ArgsSchema) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIsRequired() {
+		if err = oprot.WriteFieldBegin("is_required", thrift.BOOL, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.IsRequired); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *ArgsSchema) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDefaultValue() {
+		if err = oprot.WriteFieldBegin("default_value", thrift.STRING, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.DefaultValue); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
 
 func (p *ArgsSchema) String() string {
 	if p == nil {
@@ -2530,6 +2656,12 @@ func (p *ArgsSchema) DeepEqual(ano *ArgsSchema) bool {
 		return false
 	}
 	if !p.Field3DeepEqual(ano.JSONSchema) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.IsRequired) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.DefaultValue) {
 		return false
 	}
 	return true
@@ -2568,6 +2700,30 @@ func (p *ArgsSchema) Field3DeepEqual(src *string) bool {
 		return false
 	}
 	if strings.Compare(*p.JSONSchema, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ArgsSchema) Field4DeepEqual(src *bool) bool {
+
+	if p.IsRequired == src {
+		return true
+	} else if p.IsRequired == nil || src == nil {
+		return false
+	}
+	if *p.IsRequired != *src {
+		return false
+	}
+	return true
+}
+func (p *ArgsSchema) Field5DeepEqual(src *string) bool {
+
+	if p.DefaultValue == src {
+		return true
+	} else if p.DefaultValue == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.DefaultValue, *src) != 0 {
 		return false
 	}
 	return true
