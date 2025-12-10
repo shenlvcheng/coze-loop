@@ -2238,3 +2238,19 @@ custom_code_evaluator_template_conf:
 
 expt_export_white_list:
   allow_all: true
+
+# --------------start----------------------
+# 新增代码人: Cascade
+# 新增代码原因: 智宇工作流评估功能 - 配置智宇工作流API
+zhiyu_workflow:
+  # 列表/详情 API 配置
+  base_url: "https://your-zhiyu-api-host.com"
+  authorization: "Bearer your-authorization-token"
+  # 执行 API 配置
+  execute_url: "https://your-zhiyu-execute-api.com/execute"
+  auth_token: "your-auth-token"
+  # 执行时的固定参数
+  process_code: "your-process-code"
+  app_id: "your-app-id"
+  access_token: "your-access-token"
+# --------------end-----------------------
