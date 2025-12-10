@@ -144,13 +144,14 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
         const fieldName = v?.name || '';
         // 有默认值的字段，使用特殊标记来表示使用默认值
         if ((v as any).default_value) {
+          // 使用 unknown 中间转换绕过类型检查
           payload[fieldName] = {
             key: fieldName,
             name: fieldName,
             // 使用 __default_value__ 作为特殊标记，实际值存储在 constValue 中
             schemaSourceType: '__default_value__',
             constValue: (v as any).default_value,
-          } as OptionSchema;
+          } as unknown as OptionSchema;
         } else {
           payload[fieldName] = currentMapping?.[fieldName] || undefined;
         }
