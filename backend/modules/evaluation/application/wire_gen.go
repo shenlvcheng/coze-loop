@@ -57,6 +57,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/notify"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/prompt"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/tag"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/rpc/workflow"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/runtime"
 	conf2 "github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/conf"
 	"github.com/coze-dev/coze-loop/backend/pkg/conf"
@@ -129,7 +130,9 @@ func InitExperimentApplication(ctx context.Context, idgen2 idgen.IIDGenerator, d
 	iEvalTargetRepo := target.NewEvalTargetRepo(idgen2, db2, evalTargetDAO, evalTargetVersionDAO, evalTargetRecordDAO, iLatestWriteTracker)
 	evalTargetMetrics := metrics3.NewEvalTargetMetrics(meter)
 	iPromptRPCAdapter := prompt.NewPromptRPCAdapter(pms, pes)
-	v2 := NewSourceTargetOperators(iPromptRPCAdapter)
+	iWorkflowConfiger := conf2.NewWorkflowConfiger(configFactory)
+	iWorkflowRPCAdapter := workflow.NewWorkflowRPCAdapter(iWorkflowConfiger)
+	v2 := NewSourceTargetOperators(iPromptRPCAdapter, iWorkflowRPCAdapter)
 	iEvalTargetService := service.NewEvalTargetServiceImpl(iEvalTargetRepo, idgen2, evalTargetMetrics, v2)
 	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(sds)
 	evaluationSetVersionService := service.NewEvaluationSetVersionServiceImpl(iDatasetRPCAdapter)
@@ -215,7 +218,10 @@ func InitEvaluationSetApplication(client datasetservice.Client, authClient auths
 	return evaluationSetService
 }
 
-func InitEvalTargetApplication(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, client promptmanageservice.Client, executeClient promptexecuteservice.Client, authClient authservice.Client, cmdable redis.Cmdable, meter metrics.Meter) evaluation.EvalTargetService {
+// --------------start----------------------
+// 新增代码人: Cascade
+// 新增代码原因: 智宇工作流评估功能 - 添加configFactory参数用于工作流配置
+func InitEvalTargetApplication(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, configFactory conf.IConfigLoaderFactory, client promptmanageservice.Client, executeClient promptexecuteservice.Client, authClient authservice.Client, cmdable redis.Cmdable, meter metrics.Meter) evaluation.EvalTargetService {
 	iAuthProvider := foundation.NewAuthRPCProvider(authClient)
 	evalTargetDAO := mysql3.NewEvalTargetDAO(db2)
 	evalTargetVersionDAO := mysql3.NewEvalTargetVersionDAO(db2)
@@ -224,7 +230,9 @@ func InitEvalTargetApplication(ctx context.Context, idgen2 idgen.IIDGenerator, d
 	iEvalTargetRepo := target.NewEvalTargetRepo(idgen2, db2, evalTargetDAO, evalTargetVersionDAO, evalTargetRecordDAO, iLatestWriteTracker)
 	evalTargetMetrics := metrics3.NewEvalTargetMetrics(meter)
 	iPromptRPCAdapter := prompt.NewPromptRPCAdapter(client, executeClient)
-	v := NewSourceTargetOperators(iPromptRPCAdapter)
+	iWorkflowConfiger := conf2.NewWorkflowConfiger(configFactory)
+	iWorkflowRPCAdapter := workflow.NewWorkflowRPCAdapter(iWorkflowConfiger)
+	v := NewSourceTargetOperators(iPromptRPCAdapter, iWorkflowRPCAdapter)
 	iEvalTargetService := service.NewEvalTargetServiceImpl(iEvalTargetRepo, idgen2, evalTargetMetrics, v)
 	evalTargetService := NewEvalTargetHandlerImpl(iAuthProvider, iEvalTargetService, v)
 	return evalTargetService
@@ -261,7 +269,7 @@ var (
 		evalSetDomainService, metrics4.NewEvaluationSetMetrics, service.NewEvaluationSetSchemaServiceImpl, foundation.NewAuthRPCProvider, foundation.NewUserRPCProvider, userinfo.NewUserInfoServiceImpl,
 	)
 
-	targetDomainService = wire.NewSet(service.NewEvalTargetServiceImpl, NewSourceTargetOperators, prompt.NewPromptRPCAdapter, target.NewEvalTargetRepo, mysql3.NewEvalTargetDAO, mysql3.NewEvalTargetRecordDAO, mysql3.NewEvalTargetVersionDAO)
+	targetDomainService = wire.NewSet(service.NewEvalTargetServiceImpl, NewSourceTargetOperators, prompt.NewPromptRPCAdapter, workflow.NewWorkflowRPCAdapter, conf2.NewWorkflowConfiger, target.NewEvalTargetRepo, mysql3.NewEvalTargetDAO, mysql3.NewEvalTargetRecordDAO, mysql3.NewEvalTargetVersionDAO)
 
 	evalTargetSet = wire.NewSet(
 		NewEvalTargetHandlerImpl, metrics3.NewEvalTargetMetrics, foundation.NewAuthRPCProvider, targetDomainService,
@@ -269,8 +277,8 @@ var (
 	)
 )
 
-func NewSourceTargetOperators(adapter rpc.IPromptRPCAdapter) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
-	return map[entity.EvalTargetType]service.ISourceEvalTargetOperateService{entity.EvalTargetTypeLoopPrompt: service.NewPromptSourceEvalTargetServiceImpl(adapter)}
+func NewSourceTargetOperators(promptAdapter rpc.IPromptRPCAdapter, workflowAdapter rpc.IWorkflowRPCAdapter) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
+	return map[entity.EvalTargetType]service.ISourceEvalTargetOperateService{entity.EvalTargetTypeLoopPrompt: service.NewPromptSourceEvalTargetServiceImpl(promptAdapter), entity.EvalTargetTypeCozeWorkflow: service.NewWorkflowSourceEvalTargetServiceImpl(workflowAdapter)}
 }
 
 func NewLock(cmdable redis.Cmdable) lock.ILocker {
