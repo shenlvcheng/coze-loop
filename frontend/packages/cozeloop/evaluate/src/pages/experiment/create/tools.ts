@@ -281,8 +281,10 @@ const getTargetFieldMapping = (values: CreateExperimentValues) => {
     return undefined;
   }
 
-  return {
-    from_eval_set: Object.entries(evalTargetMapping).map(([k, v]) => {
+  // 过滤掉 undefined 的值，然后映射
+  const mappings = Object.entries(evalTargetMapping)
+    .filter(([, v]) => v !== undefined)
+    .map(([k, v]) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const optionSchema = v as any;
       // 检查是否是默认值字段（schemaSourceType 为 '__default_value__'）
@@ -300,7 +302,15 @@ const getTargetFieldMapping = (values: CreateExperimentValues) => {
         // 字段来源
         from_field_name: optionSchema?.name || optionSchema?.key,
       };
-    }),
+    });
+
+  // 如果没有有效的映射，返回 undefined
+  if (mappings.length === 0) {
+    return undefined;
+  }
+
+  return {
+    from_eval_set: mappings,
   };
 };
 
