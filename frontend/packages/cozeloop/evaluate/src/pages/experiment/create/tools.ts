@@ -282,13 +282,25 @@ const getTargetFieldMapping = (values: CreateExperimentValues) => {
   }
 
   return {
-    from_eval_set: Object.entries(evalTargetMapping).map(([k, v]) => ({
-      // 字段名称
-      field_name: k,
-      // 字段来源
-      from_field_name: v?.name || v.key,
-      // from_field_name: v.key,
-    })),
+    from_eval_set: Object.entries(evalTargetMapping).map(([k, v]) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const optionSchema = v as any;
+      // 检查是否是默认值字段（schemaSourceType 为 '__default_value__'）
+      if (optionSchema?.schemaSourceType === '__default_value__') {
+        return {
+          // 字段名称
+          field_name: k,
+          // 使用 const_value 存储默认值
+          const_value: optionSchema.constValue || '',
+        };
+      }
+      return {
+        // 字段名称
+        field_name: k,
+        // 字段来源
+        from_field_name: optionSchema?.name || optionSchema?.key,
+      };
+    }),
   };
 };
 
