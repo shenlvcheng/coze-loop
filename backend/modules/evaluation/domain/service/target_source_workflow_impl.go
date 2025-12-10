@@ -290,7 +290,7 @@ func (t *WorkflowSourceEvalTargetServiceImpl) ListSourceVersion(ctx context.Cont
 				SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 				JsonSchema:          gptr.Of(valueTypeToJsonSchema(p.ValueType)),
 				IsRequired:          gptr.Of(isRequired),
-				// globalParams 中的字段没有默认值，keyword 是下拉框，其他是输入框
+				// globalParams 中的字段没有默认值，显示为下拉选择框，让用户选择评测集字段
 			})
 		}
 	}

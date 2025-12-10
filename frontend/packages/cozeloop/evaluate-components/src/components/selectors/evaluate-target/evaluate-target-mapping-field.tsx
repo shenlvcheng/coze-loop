@@ -7,7 +7,9 @@ import { type FieldSchema } from '@cozeloop/api-schema/evaluation';
 import { IconCozEmpty } from '@coze-arch/coze-design/icons';
 import {
   EmptyState,
+  Input,
   Loading,
+  Tag,
   type SelectProps,
   withField,
   type CommonFieldProps,
@@ -16,6 +18,8 @@ import {
 import { type OptionGroup } from '../../../components/mapping-item-field/types';
 import { MappingItemField } from '../../../components/mapping-item-field';
 import {
+  EqualItem,
+  ReadonlyItem,
   getSchemaTypeText,
   getTypeText,
 } from '../../../components/column-item-map';
@@ -73,9 +77,37 @@ const EvaluateTargetMappingField: FC<
     <>
       <div className={loading ? 'hidden' : ''}>
         {keySchemas?.map(k => {
+          // 有默认值的字段显示为只读输入框
+          const hasDefaultValue = !!(k as any).default_value;
           // 根据 isRequired 决定是否必填校验
           const isRequired = k.isRequired !== false; // 默认必填，除非明确设置为 false
 
+          // 有默认值的字段：显示为只读输入框
+          if (hasDefaultValue) {
+            return (
+              <div key={k.name} className="flex flex-row items-center gap-2 mb-3">
+                <ReadonlyItem
+                  className="flex-1"
+                  title={I18n.t('evaluation_object')}
+                  typeText={getSchemaTypeText(k)}
+                  value={k.name}
+                />
+                <EqualItem />
+                <Input
+                  className="flex-1"
+                  value={(k as any).default_value}
+                  disabled
+                  suffix={
+                    <Tag size="small" color="cyan">
+                      默认值
+                    </Tag>
+                  }
+                />
+              </div>
+            );
+          }
+
+          // 没有默认值的字段：显示为下拉选择框
           return (
             <MappingItemField
               key={k.name}
