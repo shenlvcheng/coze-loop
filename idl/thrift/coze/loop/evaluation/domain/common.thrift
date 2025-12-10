@@ -60,6 +60,10 @@ struct ArgsSchema {
     2: optional list<ContentType> support_content_types (go.tag='mapstructure:"support_content_types"'),
     // 	序列化后的jsonSchema字符串，例如："{\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"age\": {\"type\": \"integer\"}, \"isStudent\": {\"type\": \"boolean\"}}, \"required\": [\"name\", \"age\", \"isStudent\"]}"
     3: optional string json_schema (go.tag='mapstructure:"json_schema"'),
+    // 是否必填
+    4: optional bool is_required (go.tag='mapstructure:"is_required"'),
+    // 默认值（有值时显示为Input输入框并预填充）
+    5: optional string default_value (go.tag='mapstructure:"default_value"'),
 }
 
 struct UserInfo {
@@ -74,8 +78,8 @@ struct UserInfo {
 }
 
 struct BaseInfo {
-    1: optional UserInfo created_by                       
-    2: optional UserInfo updated_by                     
+    1: optional UserInfo created_by
+    2: optional UserInfo updated_by
     3: optional i64 created_at      (api.js_conv="true", go.tag = 'json:"created_at"')
     4: optional i64 updated_at      (api.js_conv="true", go.tag = 'json:"updated_at"')
     5: optional i64 deleted_at      (api.js_conv="true", go.tag = 'json:"deleted_at"')

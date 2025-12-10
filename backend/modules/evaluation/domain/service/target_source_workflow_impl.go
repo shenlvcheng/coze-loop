@@ -244,27 +244,35 @@ func (t *WorkflowSourceEvalTargetServiceImpl) ListSourceVersion(ctx context.Cont
 	// 构建 InputSchema
 	inputSchemas := make([]*entity.ArgsSchema, 0)
 
-	// 添加4个默认字段
+	// 添加4个默认字段（都是必填，都有默认值，显示为Input输入框）
 	inputSchemas = append(inputSchemas,
 		&entity.ArgsSchema{
 			Key:                 gptr.Of("sceneKey"),
 			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 			JsonSchema:          gptr.Of(`{"type":"string"}`),
+			IsRequired:          gptr.Of(true),
+			DefaultValue:        gptr.Of(param.SourceTargetID), // sceneKey 就是工作流ID
 		},
 		&entity.ArgsSchema{
 			Key:                 gptr.Of("processCode"),
 			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 			JsonSchema:          gptr.Of(`{"type":"string"}`),
+			IsRequired:          gptr.Of(true),
+			DefaultValue:        gptr.Of(defaultParams.ProcessCode),
 		},
 		&entity.ArgsSchema{
 			Key:                 gptr.Of("appId"),
 			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 			JsonSchema:          gptr.Of(`{"type":"string"}`),
+			IsRequired:          gptr.Of(true),
+			DefaultValue:        gptr.Of(defaultParams.AppID),
 		},
 		&entity.ArgsSchema{
 			Key:                 gptr.Of("accessToken"),
 			SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 			JsonSchema:          gptr.Of(`{"type":"string"}`),
+			IsRequired:          gptr.Of(true),
+			DefaultValue:        gptr.Of(defaultParams.AccessToken),
 		},
 	)
 
@@ -275,16 +283,17 @@ func (t *WorkflowSourceEvalTargetServiceImpl) ListSourceVersion(ctx context.Cont
 			if p.ParamName == "sceneKey" || p.ParamName == "processCode" || p.ParamName == "appId" || p.ParamName == "accessToken" {
 				continue
 			}
+			// isRequired: 1=必填, 0=非必填
+			isRequired := p.IsRequired == 1
 			inputSchemas = append(inputSchemas, &entity.ArgsSchema{
 				Key:                 gptr.Of(p.ParamName),
 				SupportContentTypes: []entity.ContentType{entity.ContentTypeText},
 				JsonSchema:          gptr.Of(valueTypeToJsonSchema(p.ValueType)),
+				IsRequired:          gptr.Of(isRequired),
+				// globalParams 中的字段没有默认值，keyword 是下拉框，其他是输入框
 			})
 		}
 	}
-
-	// 忽略 defaultParams 的使用警告（后续执行时会用到）
-	_ = defaultParams
 
 	versions = []*entity.EvalTargetVersion{
 		{

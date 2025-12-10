@@ -24,7 +24,7 @@ import emptyStyles from './empty-state.module.less';
 
 export interface EvaluateTargetMappingProps {
   loading?: boolean;
-  keySchemas?: (FieldSchema & { type?: string })[];
+  keySchemas?: (FieldSchema & { type?: string; default_value?: string })[];
   prefixField: string;
   evaluationSetSchemas?: FieldSchema[];
   selectProps?: SelectProps;
@@ -72,31 +72,37 @@ const EvaluateTargetMappingField: FC<
   return (
     <>
       <div className={loading ? 'hidden' : ''}>
-        {keySchemas?.map(k => (
-          <MappingItemField
-            key={k.name}
-            noLabel
-            field={`${prefixField}.${k.name}`}
-            fieldClassName="!pt-0"
-            keyTitle={I18n.t('evaluation_object')}
-            keySchema={k}
-            optionGroups={optionGroups}
-            selectProps={selectProps}
-            rules={[
-              {
-                validator: (_rule, v) => {
-                  if (!v) {
-                    return new Error(I18n.t('please_select'));
-                  }
-                  if (getTypeText(v) !== getSchemaTypeText(k)) {
-                    return new Error(I18n.t('selected_fields_inconsistent'));
-                  }
-                  return true;
+        {keySchemas?.map(k => {
+          // 根据 isRequired 决定是否必填校验
+          const isRequired = k.isRequired !== false; // 默认必填，除非明确设置为 false
+
+          return (
+            <MappingItemField
+              key={k.name}
+              noLabel
+              field={`${prefixField}.${k.name}`}
+              fieldClassName="!pt-0"
+              keyTitle={I18n.t('evaluation_object')}
+              keySchema={k}
+              optionGroups={optionGroups}
+              selectProps={selectProps}
+              rules={[
+                {
+                  validator: (_rule, v) => {
+                    // 只有必填字段才校验空值
+                    if (isRequired && !v) {
+                      return new Error(I18n.t('please_select'));
+                    }
+                    if (v && getTypeText(v) !== getSchemaTypeText(k)) {
+                      return new Error(I18n.t('selected_fields_inconsistent'));
+                    }
+                    return true;
+                  },
                 },
-              },
-            ]}
-          />
-        ))}
+              ]}
+            />
+          );
+        })}
       </div>
       {/* loading态不能直接返回咯爱的loading dom，不渲染MappingItemField会导致表单数据丢失 */}
       {loading ? (
