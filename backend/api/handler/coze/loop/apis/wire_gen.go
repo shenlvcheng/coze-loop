@@ -123,7 +123,7 @@ func InitEvaluationHandler(ctx context.Context, idgen2 idgen.IIDGenerator, db2 d
 	if err != nil {
 		return nil, err
 	}
-	evalTargetService := application4.InitEvalTargetApplication(ctx, idgen2, db2, promptClient, pec, authClient, cmdable, meter)
+	evalTargetService := application4.InitEvalTargetApplication(ctx, idgen2, db2, configFactory, promptClient, pec, authClient, cmdable, meter)
 	iExperimentApplication, err := application4.InitExperimentApplication(ctx, idgen2, db2, configFactory, mqFactory, cmdable, auditClient, meter, authClient, evaluationSetService, evaluatorService, evalTargetService, userClient, promptClient, pec, client, limiterFactory, llmClient, benefitSvc, ckDb, tagClient, objectStorage)
 	if err != nil {
 		return nil, err
