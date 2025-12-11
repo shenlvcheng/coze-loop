@@ -103,6 +103,7 @@ func (w *WorkflowRPCAdapter) ListWorkflows(ctx context.Context, param *rpc.ListW
 			ScenePath:    item.ScenePath,
 			Remark:       item.Remark,
 			ReleaseState: item.ReleaseState,
+			SceneType:    item.SceneType,
 		})
 	}
 
@@ -187,11 +188,43 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 // ExecuteWorkflow 执行工作流
 func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.ExecuteWorkflowParam) (result *rpc.ExecuteWorkflowResult, err error) {
 	cfg := w.configer.GetWorkflowConfig(ctx)
-	if cfg == nil || cfg.ExecuteURL == "" {
-		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow execute config not found"))
+	if cfg == nil {
+		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
-	// 构建请求体 - 动态参数 + 固定参数
+	// 1. 获取工作流列表以获取 sceneType
+	workflows, _, err := w.ListWorkflows(ctx, &rpc.ListWorkflowsParam{
+		PageNum:  1,
+		PageSize: 100,
+	})
+	if err != nil {
+		return nil, errorx.Wrapf(err, "list workflows failed")
+	}
+
+	// 查找对应的工作流获取 sceneType
+	var sceneType string
+	for _, wf := range workflows {
+		if wf.SceneKey == param.SceneKey {
+			sceneType = wf.SceneType
+			break
+		}
+	}
+
+	// 3. 根据 sceneType 选择 URL
+	var executeURL string
+	if sceneType == "2" { // 流式
+		if cfg.StreamExecuteURL == "" {
+			return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("stream execute url not configured"))
+		}
+		executeURL = fmt.Sprintf("%s/%s", cfg.StreamExecuteURL, param.SceneKey)
+	} else { // 非流式（sceneType == "0" 或其他）
+		if cfg.ExecuteURL == "" {
+			return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("execute url not configured"))
+		}
+		executeURL = fmt.Sprintf("%s/%s", cfg.ExecuteURL, param.SceneKey)
+	}
+
+	// 4. 构建请求体
 	reqBody := make(map[string]interface{})
 	for k, v := range param.InputData {
 		reqBody[k] = v
@@ -207,51 +240,48 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 		return nil, errorx.Wrapf(err, "marshal execute workflow request failed")
 	}
 
-	logs.CtxInfo(ctx, "ExecuteWorkflow request: url=%s, body=%s", cfg.ExecuteURL, string(reqBodyBytes))
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.ExecuteURL, bytes.NewReader(reqBodyBytes))
+	// 5. 创建HTTP请求
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, executeURL, bytes.NewReader(reqBodyBytes))
 	if err != nil {
 		return nil, errorx.Wrapf(err, "create execute workflow request failed")
 	}
 
-	// 设置Header
-	req.Header.Set("AuthToken", cfg.AuthToken)
+	// 6. 设置请求头
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("AuthToken", cfg.AuthToken)
 
-	// 发送请求
+	// 7. 记录请求日志（包含请求头）
+	logs.CtxInfo(ctx, "ExecuteWorkflow request: url=%s, headers={Content-Type: application/json, AuthToken: [REDACTED]}, body=%s",
+		executeURL, string(reqBodyBytes))
+
+	// 8. 发送请求
 	resp, err := w.httpClient.Do(req)
 	if err != nil {
 		return nil, errorx.Wrapf(err, "execute workflow request failed")
 	}
 	defer resp.Body.Close()
 
+	// 9. 读取响应体
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errorx.Wrapf(err, "read execute workflow response failed")
 	}
 
+	// 10. 记录响应日志
 	logs.CtxInfo(ctx, "ExecuteWorkflow response: status=%d, body=%s", resp.StatusCode, string(body))
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errorx.NewByCode(errno.CommonRPCErrorCode, errorx.WithExtraMsg(fmt.Sprintf("execute workflow failed, status: %d, body: %s", resp.StatusCode, string(body))))
+		return nil, errorx.NewByCode(errno.CommonRPCErrorCode,
+			errorx.WithExtraMsg(fmt.Sprintf("execute workflow failed, status: %d, body: %s", resp.StatusCode, string(body))))
 	}
 
-	// 解析响应
-	var execResp ExecuteWorkflowResponse
-	if err := sonic.Unmarshal(body, &execResp); err != nil {
-		// 如果解析失败，直接返回原始内容
-		return &rpc.ExecuteWorkflowResult{
-			Content: string(body),
-			Code:    0,
-			Message: "success",
-		}, nil
+	// 11. 根据 sceneType 处理响应
+	if sceneType == "2" {
+		// 流式响应处理
+		return w.handleStreamingResponse(ctx, body)
 	}
-
-	return &rpc.ExecuteWorkflowResult{
-		Content: execResp.Data,
-		Code:    execResp.Code,
-		Message: execResp.Message,
-	}, nil
+	// 非流式响应处理
+	return w.handleNormalResponse(ctx, body)
 }
 
 // GetDefaultParams 获取默认参数配置
@@ -279,6 +309,46 @@ func findSubstring(s, sub string) bool {
 		}
 	}
 	return false
+}
+
+// handleStreamingResponse 处理流式响应（SSE格式）
+func (w *WorkflowRPCAdapter) handleStreamingResponse(ctx context.Context, body []byte) (*rpc.ExecuteWorkflowResult, error) {
+	var contentBuilder bytes.Buffer
+
+	// 按行处理SSE格式
+	lines := bytes.Split(body, []byte("\n"))
+	for _, line := range lines {
+		line = bytes.TrimSpace(line)
+		if bytes.HasPrefix(line, []byte("data:")) {
+			content := bytes.TrimSpace(bytes.TrimPrefix(line, []byte("data:")))
+			contentBuilder.Write(content)
+		}
+	}
+
+	return &rpc.ExecuteWorkflowResult{
+		Content: contentBuilder.String(),
+		Code:    200,
+		Message: "success",
+	}, nil
+}
+
+// handleNormalResponse 处理普通响应（JSON格式）
+func (w *WorkflowRPCAdapter) handleNormalResponse(ctx context.Context, body []byte) (*rpc.ExecuteWorkflowResult, error) {
+	var execResp ExecuteWorkflowResponse
+	if err := sonic.Unmarshal(body, &execResp); err != nil {
+		return nil, errorx.Wrapf(err, "unmarshal execute workflow response failed")
+	}
+
+	if execResp.ErrCode != 0 {
+		return nil, errorx.NewByCode(errno.CommonRPCErrorCode,
+			errorx.WithExtraMsg(fmt.Sprintf("workflow execute failed, code: %d, message: %s", execResp.ErrCode, execResp.ErrMsg)))
+	}
+
+	return &rpc.ExecuteWorkflowResult{
+		Content: execResp.Data.Data,
+		Code:    execResp.Data.Code,
+		Message: execResp.Data.Msg,
+	}, nil
 }
 
 // --------------end-----------------------

@@ -61,12 +61,22 @@ type GlobalParam struct {
 	ParamDesc   string `json:"paramDesc"`
 }
 
-// ExecuteWorkflowResponse 执行工作流响应
+// ExecuteWorkflowResponse 执行工作流响应（非流式）
 type ExecuteWorkflowResponse struct {
-	Code    int32  `json:"code"`
-	Message string `json:"msg"`
-	Status  string `json:"status"`
-	Data    string `json:"data"`
+	ErrMsg    string `json:"errMsg"`
+	ErrCode   int32  `json:"errCode"`
+	RequestID string `json:"requestId"`
+	ID        string `json:"id"`
+	Data      struct {
+		Code        int32  `json:"code"`
+		Data        string `json:"data"`
+		Num         int    `json:"num"`
+		Status      string `json:"status"`
+		Msg         string `json:"msg"`
+		SendMessage struct {
+			InpromptLLM string `json:"inprompt_llm"`
+		} `json:"sendMessage"`
+	} `json:"data"`
 }
 
 // --------------end-----------------------

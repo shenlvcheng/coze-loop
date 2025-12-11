@@ -47,6 +47,7 @@ type ZhiyuWorkflow struct {
 	ScenePath    string // 图标(base64)
 	Remark       string // 描述
 	ReleaseState string // 发布状态
+	SceneType    string // 场景类型：0-非流式，2-流式
 }
 
 // WorkflowDetail 工作流详情

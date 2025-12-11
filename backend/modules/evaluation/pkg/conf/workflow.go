@@ -27,8 +27,9 @@ type WorkflowConfig struct {
 	Authorization string `json:"authorization" yaml:"authorization" mapstructure:"authorization"`
 
 	// 执行 API 配置
-	ExecuteURL string `json:"execute_url" yaml:"execute_url" mapstructure:"execute_url"`
-	AuthToken  string `json:"auth_token" yaml:"auth_token" mapstructure:"auth_token"`
+	ExecuteURL       string `json:"execute_url" yaml:"execute_url" mapstructure:"execute_url"`
+	StreamExecuteURL string `json:"stream_execute_url" yaml:"stream_execute_url" mapstructure:"stream_execute_url"`
+	AuthToken        string `json:"auth_token" yaml:"auth_token" mapstructure:"auth_token"`
 
 	// 执行时的固定参数
 	ProcessCode string `json:"process_code" yaml:"process_code" mapstructure:"process_code"`
