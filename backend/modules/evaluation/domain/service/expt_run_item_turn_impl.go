@@ -169,6 +169,15 @@ func (e *DefaultExptTurnEvaluationImpl) callTarget(ctx context.Context, etec *en
 	fieldConfs := targetConf.IngressConf.EvalSetAdapter.FieldConfs
 	fields := make(map[string]*entity.Content, len(fieldConfs))
 	for _, fc := range fieldConfs {
+		// 如果有 Value（常量值），直接使用常量值，不从评测集中获取
+		if fc.Value != "" {
+			contentType := entity.ContentTypeText
+			fields[fc.FieldName] = &entity.Content{
+				ContentType: &contentType,
+				Text:        gptr.Of(fc.Value),
+			}
+			continue
+		}
 		firstField, err := json.GetFirstJSONPathField(fc.FromField)
 		if err != nil {
 			return nil, err
