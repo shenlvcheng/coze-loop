@@ -61,7 +61,7 @@ const EvaluateTargetMappingField: FC<
     [evaluationSetSchemas],
   );
 
-  if (!keySchemas) {
+  if (!keySchemas || keySchemas.length === 0) {
     return (
       <div className="h-[84px] w-full flex items-center justify-center">
         <EmptyState
