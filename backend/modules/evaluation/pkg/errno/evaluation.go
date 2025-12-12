@@ -162,13 +162,17 @@ const (
 
 	InvalidOutputFromModelCode              = 601205015 // invalid output from model
 	invalidOutputFromModelMessage           = "invalid output from model"
-	invalidOutputFromModelNoAffectStability = false
+	invalidOutputFromModelNoAffectStability = true
 
-	EvaluatorNameExceedMaxLengthCode              = 601205016 // evaluator name exceeds maximum length 50
+	WorkflowAPIErrorCode              = 601205016 // workflow API error (message from external API)
+	workflowAPIErrorMessage           = ""        // 留空，使用 BizMessage 中的实际错误信息
+	workflowAPIErrorNoAffectStability = true
+
+	EvaluatorNameExceedMaxLengthCode              = 601205017 // evaluator name exceeds maximum length 50
 	evaluatorNameExceedMaxLengthMessage           = "evaluator name exceeds maximum length 50"
 	evaluatorNameExceedMaxLengthNoAffectStability = true
 
-	EvaluatorDescriptionExceedMaxLengthCode              = 601205017 // evaluator description exceeds maximum length 200
+	EvaluatorDescriptionExceedMaxLengthCode              = 601205018 // evaluator description exceeds maximum length 200
 	evaluatorDescriptionExceedMaxLengthMessage           = "evaluator description exceeds maximum length 200"
 	evaluatorDescriptionExceedMaxLengthNoAffectStability = true
 
@@ -547,6 +551,12 @@ func init() {
 		InvalidOutputFromModelCode,
 		invalidOutputFromModelMessage,
 		code.WithAffectStability(!invalidOutputFromModelNoAffectStability),
+	)
+
+	code.Register(
+		WorkflowAPIErrorCode,
+		workflowAPIErrorMessage,
+		code.WithAffectStability(!workflowAPIErrorNoAffectStability),
 	)
 
 	code.Register(

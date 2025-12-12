@@ -171,9 +171,9 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	logs.CtxInfo(ctx, "GetWorkflowDetail parsed response: status=%s, code=%d, message=%s", detailResp.Status, detailResp.Code, detailResp.Message)
 
 	if detailResp.Code != 1000 {
-		// 返回 BizStatusError，PacketAdapter 才能透传 msg（否则会兜底成“内部错误”）
+		// 返回 BizStatusError，使用 WorkflowAPIErrorCode（message 为空）避免被国际化翻译覆盖
 		errMsg := fmt.Sprintf("智宇工作流错误: %s (code: %d)", detailResp.Message, detailResp.Code)
-		return nil, kerrors.NewBizStatusError(errno.CommonRPCErrorCode, errMsg)
+		return nil, kerrors.NewBizStatusError(errno.WorkflowAPIErrorCode, errMsg)
 	}
 
 	// 转换结果
