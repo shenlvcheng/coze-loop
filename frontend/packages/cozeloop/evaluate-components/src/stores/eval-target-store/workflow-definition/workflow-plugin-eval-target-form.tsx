@@ -123,6 +123,9 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   // 从工作流详情中获取输入参数schema
   // 所有字段都展示，有 default_value 的字段显示为只读输入框
   const inputSchemas = useMemo(() => {
+    // 如果有错误，返回空数组，避免使用旧数据
+    if (workflowDetailService.error) return [];
+
     const schemas = workflowDetailService.data?.eval_target_content?.input_schemas;
     if (!schemas) return [];
     return schemas.map(schema => ({
@@ -132,7 +135,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       isRequired: schema.is_required,
       default_value: schema.default_value, // 有默认值的字段显示为只读输入框
     })) as FieldSchema[];
-  }, [workflowDetailService.data]);
+  }, [workflowDetailService.data, workflowDetailService.error]);
 
   const handleEvalTargetChange = () => {
     onChange('evalTargetVersion', '0.0.1'); // 固定版本
