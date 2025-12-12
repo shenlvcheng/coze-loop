@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/cloudwego/kitex/pkg/kerrors"
 
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/conf"
@@ -170,8 +171,9 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	logs.CtxInfo(ctx, "GetWorkflowDetail parsed response: status=%s, code=%d, message=%s", detailResp.Status, detailResp.Code, detailResp.Message)
 
 	if detailResp.Code != 1000 {
-		// 直接返回智宇 API 的错误信息，不使用错误码，这样前端能看到完整的错误消息
-		return nil, fmt.Errorf("智宇工作流错误: %s (code: %d)", detailResp.Message, detailResp.Code)
+		// 返回 BizStatusError，PacketAdapter 才能透传 msg（否则会兜底成“内部错误”）
+		errMsg := fmt.Sprintf("智宇工作流错误: %s (code: %d)", detailResp.Message, detailResp.Code)
+		return nil, kerrors.NewBizStatusError(errno.CommonRPCErrorCode, errMsg)
 	}
 
 	// 转换结果
