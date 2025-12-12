@@ -138,6 +138,9 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	req.Header.Set("Authorization", cfg.Authorization)
 	req.Header.Set("Content-Type", "application/json")
 
+	// 记录请求日志
+	logs.CtxInfo(ctx, "GetWorkflowDetail request: url=%s, sceneKey=%s, headers={Authorization: [REDACTED], Content-Type: application/json}", url, sceneKey)
+
 	// 发送请求
 	resp, err := w.httpClient.Do(req)
 	if err != nil {
@@ -149,6 +152,9 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	if err != nil {
 		return nil, errorx.Wrapf(err, "read get workflow detail response failed")
 	}
+
+	// 记录响应日志
+	logs.CtxInfo(ctx, "GetWorkflowDetail response: status=%d, body=%s", resp.StatusCode, string(body))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, errorx.NewByCode(errno.CommonRPCErrorCode, errorx.WithExtraMsg(fmt.Sprintf("get workflow detail failed, status: %d, body: %s", resp.StatusCode, string(body))))
