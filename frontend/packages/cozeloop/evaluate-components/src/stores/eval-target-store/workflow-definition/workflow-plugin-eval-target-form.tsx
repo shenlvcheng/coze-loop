@@ -141,7 +141,8 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
 
   // 当输入参数变化时，初始化字段映射
   useEffect(() => {
-    if (inputSchemas?.length > 0) {
+    // 只有在成功获取到数据且没有错误时才初始化字段映射
+    if (inputSchemas?.length > 0 && !workflowDetailService.error) {
       const payload: Record<string, OptionSchema | undefined> = {};
       const currentMapping = formValues?.evalTargetMapping || {};
       inputSchemas.forEach(v => {
@@ -162,7 +163,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       });
       onChange('evalTargetMapping', payload);
     }
-  }, [inputSchemas]);
+  }, [inputSchemas, workflowDetailService.error]);
 
   // 设置默认版本
   useEffect(() => {
