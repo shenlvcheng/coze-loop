@@ -113,6 +113,10 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     {
       refreshDeps: [workflowId],
       ready: !!workflowId,
+      onError: () => {
+        // 报错时清空字段映射，避免显示旧数据
+        onChange('evalTargetMapping', undefined);
+      },
     },
   );
 
