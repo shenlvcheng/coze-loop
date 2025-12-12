@@ -144,8 +144,14 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
 
   // 当输入参数变化时，初始化字段映射
   useEffect(() => {
+    // 如果有错误，清空字段映射
+    if (workflowDetailService.error) {
+      onChange('evalTargetMapping', undefined);
+      return;
+    }
+
     // 只有在成功获取到数据且没有错误时才初始化字段映射
-    if (inputSchemas?.length > 0 && !workflowDetailService.error) {
+    if (inputSchemas?.length > 0) {
       const payload: Record<string, OptionSchema | undefined> = {};
       const currentMapping = formValues?.evalTargetMapping || {};
       inputSchemas.forEach(v => {
