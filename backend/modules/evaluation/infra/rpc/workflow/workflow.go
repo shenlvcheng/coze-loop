@@ -170,7 +170,8 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	logs.CtxInfo(ctx, "GetWorkflowDetail parsed response: status=%s, code=%d, message=%s", detailResp.Status, detailResp.Code, detailResp.Message)
 
 	if detailResp.Code != 1000 {
-		return nil, errorx.NewByCode(errno.CommonRPCErrorCode, errorx.WithExtraMsg(fmt.Sprintf("get workflow detail failed, code: %d, message: %s", detailResp.Code, detailResp.Message)))
+		// 直接使用智宇 API 返回的错误信息，让用户看到具体原因
+		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg(fmt.Sprintf("智宇工作流API错误: %s (code: %d)", detailResp.Message, detailResp.Code)))
 	}
 
 	// 转换结果
