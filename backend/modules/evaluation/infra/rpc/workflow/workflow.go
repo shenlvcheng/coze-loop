@@ -163,8 +163,11 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	// 解析响应
 	var detailResp GetWorkflowDetailResponse
 	if err := sonic.Unmarshal(body, &detailResp); err != nil {
+		logs.CtxError(ctx, "GetWorkflowDetail unmarshal failed: err=%v, body=%s", err, string(body))
 		return nil, errorx.Wrapf(err, "unmarshal get workflow detail response failed")
 	}
+
+	logs.CtxInfo(ctx, "GetWorkflowDetail parsed response: status=%s, code=%d, message=%s", detailResp.Status, detailResp.Code, detailResp.Message)
 
 	if detailResp.Code != 1000 {
 		return nil, errorx.NewByCode(errno.CommonRPCErrorCode, errorx.WithExtraMsg(fmt.Sprintf("get workflow detail failed, code: %d, message: %s", detailResp.Code, detailResp.Message)))
@@ -187,6 +190,9 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 			IsRequired:  param.IsRequired,
 		})
 	}
+
+	logs.CtxInfo(ctx, "GetWorkflowDetail success: sceneKey=%s, apiHttpHost=%s, apiHttpPath=%s, globalParamsCount=%d",
+		detail.SceneKey, detail.APIHttpHost, detail.APIHttpPath, len(detail.GlobalParams))
 
 	return detail, nil
 }
