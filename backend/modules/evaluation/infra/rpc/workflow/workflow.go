@@ -14,9 +14,11 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/cloudwego/kitex/pkg/kerrors"
 
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/conf"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
+	"github.com/coze-dev/coze-loop/backend/pkg/ctxcache"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
@@ -48,6 +50,11 @@ func (w *WorkflowRPCAdapter) ListWorkflows(ctx context.Context, param *rpc.ListW
 		return nil, 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
+	authorization := cfg.Authorization
+	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey); ok && len(v) > 0 {
+		authorization = v
+	}
+
 	// 构建请求URL
 	url := fmt.Sprintf("%s/aistar_server/scene/api/v1/list?releaseState=&partition=1&teamId=&pageSize=%d&pageNum=%d",
 		cfg.BaseURL, param.PageSize, param.PageNum)
@@ -58,7 +65,7 @@ func (w *WorkflowRPCAdapter) ListWorkflows(ctx context.Context, param *rpc.ListW
 	}
 
 	// 设置Header
-	req.Header.Set("Authorization", cfg.Authorization)
+	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Content-Type", "application/json")
 
 	// 发送请求
@@ -118,6 +125,11 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
+	authorization := cfg.Authorization
+	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey); ok && len(v) > 0 {
+		authorization = v
+	}
+
 	// 构建请求URL
 	url := fmt.Sprintf("%s/aistar_server/scene/release/getApiReleaseByKey", cfg.BaseURL)
 
@@ -136,7 +148,7 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 	}
 
 	// 设置Header
-	req.Header.Set("Authorization", cfg.Authorization)
+	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Content-Type", "application/json")
 
 	// 记录请求日志
@@ -207,6 +219,11 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
+	authToken := cfg.AuthToken
+	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthTokenCtxKey); ok && len(v) > 0 {
+		authToken = v
+	}
+
 	// 1. 获取工作流列表以获取 sceneType
 	workflows, _, err := w.ListWorkflows(ctx, &rpc.ListWorkflowsParam{
 		PageNum:  1,
@@ -263,7 +280,7 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 
 	// 6. 设置请求头
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AuthToken", cfg.AuthToken)
+	req.Header.Set("AuthToken", authToken)
 
 	// 7. 记录请求日志（包含请求头）
 	logs.CtxInfo(ctx, "ExecuteWorkflow request: url=%s, headers={Content-Type: application/json, AuthToken: [REDACTED]}, body=%s",

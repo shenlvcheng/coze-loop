@@ -37,6 +37,11 @@ const EvaluateTargetMappingFieldLabel = (
   </div>
 );
 
+const ZHIYU_AUTHORIZATION_EXT_KEY = 'zhiyu_authorization';
+const ZHIYU_AUTH_TOKEN_EXT_KEY = 'zhiyu_auth_token';
+const ZHIYU_AUTHORIZATION_HEADER = 'X-Zhiyu-Authorization';
+const ZHIYU_AUTH_TOKEN_HEADER = 'X-Zhiyu-Auth-Token';
+
 /**
  * 智宇工作流评测对象表单
  * 包含: 工作流选择, 版本显示, 字段映射
@@ -53,6 +58,26 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   const workflowId = formValues.evalTarget || '';
   const sourceTargetVersion = formValues.evalTargetVersion || '0.0.1';
 
+  const zhiyuAuthorization =
+    (formValues.ext as Record<string, string> | undefined)?.[
+      ZHIYU_AUTHORIZATION_EXT_KEY
+    ] || '';
+  const zhiyuAuthToken =
+    (formValues.ext as Record<string, string> | undefined)?.[
+      ZHIYU_AUTH_TOKEN_EXT_KEY
+    ] || '';
+
+  const zhiyuHeaders = useMemo(() => {
+    const headers: Record<string, string> = {};
+    if (zhiyuAuthorization) {
+      headers[ZHIYU_AUTHORIZATION_HEADER] = zhiyuAuthorization;
+    }
+    if (zhiyuAuthToken) {
+      headers[ZHIYU_AUTH_TOKEN_HEADER] = zhiyuAuthToken;
+    }
+    return headers;
+  }, [zhiyuAuthorization, zhiyuAuthToken]);
+
   // 评测集字段
   const evaluationSetSchemas =
     createExperimentValues?.evaluationSetVersionDetail?.evaluation_set_schema
@@ -60,12 +85,17 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
 
   // 获取工作流列表
   const workflowListService = useRequest(async (text?: string) => {
-    const res = await StoneEvaluationApi.ListSourceEvalTargets({
-      target_type: EvalTargetType.CozeWorkflow,
-      name: text || undefined,
-      workspace_id: spaceID,
-      page_size: 100,
-    });
+    const res = await StoneEvaluationApi.ListSourceEvalTargets(
+      {
+        target_type: EvalTargetType.CozeWorkflow,
+        name: text || undefined,
+        workspace_id: spaceID,
+        page_size: 100,
+      },
+      {
+        headers: zhiyuHeaders,
+      },
+    );
     return res.eval_targets?.map(item => {
       const etc = item.eval_target_version?.eval_target_content;
       const title = etc?.coze_workflow?.id || '';
@@ -102,12 +132,17 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   const workflowDetailService = useRequest(
     async () => {
       if (!workflowId) return null;
-      const res = await StoneEvaluationApi.ListSourceEvalTargetVersions({
-        workspace_id: spaceID,
-        source_target_id: workflowId,
-        target_type: EvalTargetType.CozeWorkflow,
-        page_size: 1,
-      });
+      const res = await StoneEvaluationApi.ListSourceEvalTargetVersions(
+        {
+          workspace_id: spaceID,
+          source_target_id: workflowId,
+          target_type: EvalTargetType.CozeWorkflow,
+          page_size: 1,
+        },
+        {
+          headers: zhiyuHeaders,
+        },
+      );
       return res.versions?.[0];
     },
     {
@@ -185,6 +220,34 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     <>
       {targetType === EvalTargetType.CozeWorkflow ? (
         <>
+          <Form.Input
+            field={`ext.${ZHIYU_AUTHORIZATION_EXT_KEY}`}
+            label="authorization"
+            className="w-full"
+            autoComplete="off"
+            initValue={zhiyuAuthorization}
+            onChange={value => {
+              onChange('ext', {
+                ...(formValues.ext || {}),
+                [ZHIYU_AUTHORIZATION_EXT_KEY]: value as string,
+              });
+            }}
+          />
+
+          <Form.Input
+            field={`ext.${ZHIYU_AUTH_TOKEN_EXT_KEY}`}
+            label="auth_token"
+            className="w-full"
+            autoComplete="off"
+            initValue={zhiyuAuthToken}
+            onChange={value => {
+              onChange('ext', {
+                ...(formValues.ext || {}),
+                [ZHIYU_AUTH_TOKEN_EXT_KEY]: value as string,
+              });
+            }}
+          />
+
           {/* 工作流选择 */}
           <FormSelect
             className="w-full"

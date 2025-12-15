@@ -40,6 +40,10 @@ export interface CreateExperimentValues extends SubmitExperimentRequest {
     end_type?: number;
   };
 
+  ext?: {
+    [key: string | number]: string;
+  };
+
   evaluationSet?: string;
   // 评测集详情
   evaluationSetDetail?: EvaluationSet;

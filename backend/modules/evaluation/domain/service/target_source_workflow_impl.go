@@ -15,6 +15,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
+	"github.com/coze-dev/coze-loop/backend/pkg/ctxcache"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 )
 
@@ -74,6 +75,16 @@ func (t *WorkflowSourceEvalTargetServiceImpl) Execute(ctx context.Context, space
 	execParam := &rpc.ExecuteWorkflowParam{
 		SceneKey:  param.SourceTargetID, // sceneKey 作为 SourceTargetID
 		InputData: make(map[string]string),
+	}
+
+	if param != nil && param.Input != nil && param.Input.Ext != nil {
+		ctx = ctxcache.Init(ctx)
+		if v := param.Input.Ext[consts.ZhiyuAuthorizationExtKey]; len(v) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthorizationCtxKey, v)
+		}
+		if v := param.Input.Ext[consts.ZhiyuAuthTokenExtKey]; len(v) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthTokenCtxKey, v)
+		}
 	}
 
 	// 转换输入字段

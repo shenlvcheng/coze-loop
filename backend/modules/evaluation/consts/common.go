@@ -8,6 +8,24 @@ const (
 )
 
 const (
+	ZhiyuAuthorizationHeader = "X-Zhiyu-Authorization"
+	ZhiyuAuthTokenHeader     = "X-Zhiyu-Auth-Token"
+)
+
+const (
+	ZhiyuAuthorizationExtKey = "zhiyu_authorization"
+	ZhiyuAuthTokenExtKey     = "zhiyu_auth_token"
+)
+
+type zhiyuAuthorizationCtxKey struct{}
+type zhiyuAuthTokenCtxKey struct{}
+
+var (
+	ZhiyuAuthorizationCtxKey = zhiyuAuthorizationCtxKey{}
+	ZhiyuAuthTokenCtxKey     = zhiyuAuthTokenCtxKey{}
+)
+
+const (
 	RateLimitTccDynamicConfKey = "rate_limit_conf"
 	RateLimitBizKeyEvaluator   = "run_evaluator"
 )

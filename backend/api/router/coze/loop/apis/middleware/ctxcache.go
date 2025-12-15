@@ -8,11 +8,21 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/pkg/ctxcache"
 )
 
 func CtxCacheMW() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
-		c.Next(ctxcache.Init(ctx))
+		ctx = ctxcache.Init(ctx)
+
+		if val := c.GetHeader(consts.ZhiyuAuthorizationHeader); len(val) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthorizationCtxKey, string(val))
+		}
+		if val := c.GetHeader(consts.ZhiyuAuthTokenHeader); len(val) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthTokenCtxKey, string(val))
+		}
+
+		c.Next(ctx)
 	}
 }
