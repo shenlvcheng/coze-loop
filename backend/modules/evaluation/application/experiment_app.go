@@ -26,6 +26,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/service"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/contexts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
+	"github.com/coze-dev/coze-loop/backend/pkg/ctxcache"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/maps"
@@ -129,6 +130,16 @@ func (e *experimentApplication) SubmitExperiment(ctx context.Context, req *expt.
 	logs.CtxInfo(ctx, "SubmitExperiment req: %v", json.Jsonify(req))
 	if hasDuplicates(req.EvaluatorVersionIds) {
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("duplicate evaluator version ids"))
+	}
+
+	// 从 ext 中读取智宇工作流的 token 并存入 ctxcache，供 CreateEvalTarget -> BuildBySource -> GetWorkflowDetail 使用
+	if req.Ext != nil {
+		if v, ok := req.Ext[consts.ZhiyuAuthorizationExtKey]; ok && len(v) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthorizationCtxKey, v)
+		}
+		if v, ok := req.Ext[consts.ZhiyuAuthTokenExtKey]; ok && len(v) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuAuthTokenCtxKey, v)
+		}
 	}
 
 	cresp, err := e.CreateExperiment(ctx, &expt.CreateExperimentRequest{
