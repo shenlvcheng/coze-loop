@@ -266,6 +266,16 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             rules={[
               { required: true, message: '请输入 authorization' },
             ]}
+            onBlur={() => {
+              // 当用户离开输入框时，延迟刷新工作流列表（等待 state 更新）
+              setTimeout(() => {
+                const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
+                const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+                if (currentAuth && currentToken) {
+                  workflowListService.run();
+                }
+              }, 100);
+            }}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
@@ -288,6 +298,16 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             rules={[
               { required: true, message: '请输入 auth_token' },
             ]}
+            onBlur={() => {
+              // 当用户离开输入框时，延迟刷新工作流列表（等待 state 更新）
+              setTimeout(() => {
+                const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
+                const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+                if (currentAuth && currentToken) {
+                  workflowListService.run();
+                }
+              }, 100);
+            }}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
