@@ -83,57 +83,65 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     createExperimentValues?.evaluationSetVersionDetail?.evaluation_set_schema
       ?.field_schemas;
 
+  // 是否填写了必要的认证信息
+  const hasRequiredAuth = !!zhiyuAuthorization && !!zhiyuAuthToken;
+
   // 获取工作流列表 - 需要填写 authorization 后手动触发
-  const workflowListService = useRequest(async (text?: string) => {
-    // 每次请求时重新构建 headers，确保使用最新值
-    const currentHeaders: Record<string, string> = {};
-    const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
-    const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
-    if (currentAuth) {
-      currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
-    }
-    if (currentToken) {
-      currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
-    }
+  const workflowListService = useRequest(
+    async (text?: string) => {
+      // 每次请求时重新构建 headers，确保使用最新值
+      const currentHeaders: Record<string, string> = {};
+      const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
+      const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+      if (currentAuth) {
+        currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
+      }
+      if (currentToken) {
+        currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
+      }
 
-    const res = await StoneEvaluationApi.ListSourceEvalTargets(
-      {
-        target_type: EvalTargetType.CozeWorkflow,
-        name: text || undefined,
-        workspace_id: spaceID,
-        page_size: 100,
-      },
-      {
-        headers: currentHeaders,
-      },
-    );
-    return res.eval_targets?.map(item => {
-      const etc = item.eval_target_version?.eval_target_content;
-      const title = etc?.coze_workflow?.id || '';
-      const subTitle = etc?.coze_workflow?.name || '';
+      const res = await StoneEvaluationApi.ListSourceEvalTargets(
+        {
+          target_type: EvalTargetType.CozeWorkflow,
+          name: text || undefined,
+          workspace_id: spaceID,
+          page_size: 100,
+        },
+        {
+          headers: currentHeaders,
+        },
+      );
+      return res.eval_targets?.map(item => {
+        const etc = item.eval_target_version?.eval_target_content;
+        const title = etc?.coze_workflow?.id || '';
+        const subTitle = etc?.coze_workflow?.name || '';
 
-      return {
-        value: item.source_target_id,
-        label: (
-          <div className="flex flex-row items-center w-full overflow-hidden">
-            <Typography.Text
-              className={'flex-shrink !max-w-[600px] text-[13px]'}
-              ellipsis={ellipsis}
-            >
-              {subTitle}
-            </Typography.Text>
-            <Typography.Text
-              className={'flex-1 w-0 ml-3 text-xs font-medium coz-fg-secondary'}
-              ellipsis={ellipsis}
-            >
-              {title}
-            </Typography.Text>
-          </div>
-        ),
-        ...item,
-      };
-    });
-  });
+        return {
+          value: item.source_target_id,
+          label: (
+            <div className="flex flex-row items-center w-full overflow-hidden">
+              <Typography.Text
+                className={'flex-shrink !max-w-[600px] text-[13px]'}
+                ellipsis={ellipsis}
+              >
+                {subTitle}
+              </Typography.Text>
+              <Typography.Text
+                className={'flex-1 w-0 ml-3 text-xs font-medium coz-fg-secondary'}
+                ellipsis={ellipsis}
+              >
+                {title}
+              </Typography.Text>
+            </div>
+          ),
+          ...item,
+        };
+      });
+    },
+    {
+      manual: true, // 不自动执行，等用户填写 token 后手动触发
+    },
+  );
 
   const handleWorkflowSearch = useDebounceFn(workflowListService.run, {
     wait: 500,
@@ -238,8 +246,12 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     }
   }, [workflowId]);
 
-  // 是否填写了必要的认证信息
-  const hasRequiredAuth = !!zhiyuAuthorization && !!zhiyuAuthToken;
+  // 当 token 填写完成后，自动加载工作流列表
+  useEffect(() => {
+    if (hasRequiredAuth && !workflowListService.data) {
+      workflowListService.run();
+    }
+  }, [hasRequiredAuth]);
 
   return (
     <>
