@@ -83,8 +83,19 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     createExperimentValues?.evaluationSetVersionDetail?.evaluation_set_schema
       ?.field_schemas;
 
-  // 获取工作流列表
+  // 获取工作流列表 - 需要填写 authorization 后手动触发
   const workflowListService = useRequest(async (text?: string) => {
+    // 每次请求时重新构建 headers，确保使用最新值
+    const currentHeaders: Record<string, string> = {};
+    const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
+    const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+    if (currentAuth) {
+      currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
+    }
+    if (currentToken) {
+      currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
+    }
+
     const res = await StoneEvaluationApi.ListSourceEvalTargets(
       {
         target_type: EvalTargetType.CozeWorkflow,
@@ -93,7 +104,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
         page_size: 100,
       },
       {
-        headers: zhiyuHeaders,
+        headers: currentHeaders,
       },
     );
     return res.eval_targets?.map(item => {
@@ -132,6 +143,17 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   const workflowDetailService = useRequest(
     async () => {
       if (!workflowId) return null;
+      // 每次请求时重新构建 headers，确保使用最新值
+      const currentHeaders: Record<string, string> = {};
+      const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
+      const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+      if (currentAuth) {
+        currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
+      }
+      if (currentToken) {
+        currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
+      }
+
       const res = await StoneEvaluationApi.ListSourceEvalTargetVersions(
         {
           workspace_id: spaceID,
@@ -140,13 +162,13 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
           page_size: 1,
         },
         {
-          headers: zhiyuHeaders,
+          headers: currentHeaders,
         },
       );
       return res.versions?.[0];
     },
     {
-      refreshDeps: [workflowId],
+      refreshDeps: [workflowId, zhiyuAuthorization, zhiyuAuthToken],
       ready: !!workflowId,
       onError: () => {
         // 报错时清空字段映射，避免显示旧数据
