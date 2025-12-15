@@ -246,12 +246,12 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     }
   }, [workflowId]);
 
-  // 当 token 填写完成后，自动加载工作流列表
+  // 当 token 填写完成或 authorization 变化时，自动加载工作流列表
   useEffect(() => {
-    if (hasRequiredAuth && !workflowListService.data) {
+    if (hasRequiredAuth) {
       workflowListService.run();
     }
-  }, [hasRequiredAuth]);
+  }, [hasRequiredAuth, zhiyuAuthorization]);
 
   return (
     <>
