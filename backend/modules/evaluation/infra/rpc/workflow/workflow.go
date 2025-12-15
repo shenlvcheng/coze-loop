@@ -50,9 +50,10 @@ func (w *WorkflowRPCAdapter) ListWorkflows(ctx context.Context, param *rpc.ListW
 		return nil, 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
-	authorization := cfg.Authorization
-	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey); ok && len(v) > 0 {
-		authorization = v
+	// authorization 必须由前端传入，不再从配置文件读取
+	authorization, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey)
+	if !ok || len(authorization) == 0 {
+		return nil, 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("请在页面上填写 authorization"))
 	}
 
 	// 构建请求URL
@@ -125,9 +126,10 @@ func (w *WorkflowRPCAdapter) GetWorkflowDetail(ctx context.Context, sceneKey str
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
-	authorization := cfg.Authorization
-	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey); ok && len(v) > 0 {
-		authorization = v
+	// authorization 必须由前端传入，不再从配置文件读取
+	authorization, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthorizationCtxKey)
+	if !ok || len(authorization) == 0 {
+		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("请在页面上填写 authorization"))
 	}
 
 	// 构建请求URL
@@ -219,9 +221,10 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("workflow config not found"))
 	}
 
-	authToken := cfg.AuthToken
-	if v, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthTokenCtxKey); ok && len(v) > 0 {
-		authToken = v
+	// auth_token 必须由前端传入，不再从配置文件读取
+	authToken, ok := ctxcache.Get[string](ctx, consts.ZhiyuAuthTokenCtxKey)
+	if !ok || len(authToken) == 0 {
+		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("请在页面上填写 auth_token"))
 	}
 
 	// 1. 获取工作流列表以获取 sceneType

@@ -238,6 +238,9 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     }
   }, [workflowId]);
 
+  // 是否填写了必要的认证信息
+  const hasRequiredAuth = !!zhiyuAuthorization && !!zhiyuAuthToken;
+
   return (
     <>
       {targetType === EvalTargetType.CozeWorkflow ? (
@@ -248,11 +251,19 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             className="w-full"
             autoComplete="off"
             initValue={zhiyuAuthorization}
+            rules={[
+              { required: true, message: '请输入 authorization' },
+            ]}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
                 [ZHIYU_AUTHORIZATION_EXT_KEY]: value as string,
               });
+              // 清空已选择的工作流，因为 token 变了
+              if (workflowId) {
+                onChange('evalTarget', undefined);
+                onChange('evalTargetMapping', undefined);
+              }
             }}
           />
 
@@ -262,23 +273,32 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             className="w-full"
             autoComplete="off"
             initValue={zhiyuAuthToken}
+            rules={[
+              { required: true, message: '请输入 auth_token' },
+            ]}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
                 [ZHIYU_AUTH_TOKEN_EXT_KEY]: value as string,
               });
+              // 清空已选择的工作流，因为 token 变了
+              if (workflowId) {
+                onChange('evalTarget', undefined);
+                onChange('evalTargetMapping', undefined);
+              }
             }}
           />
 
-          {/* 工作流选择 */}
+          {/* 工作流选择 - 必须填写 authorization 和 auth_token 后才能选择 */}
           <FormSelect
             className="w-full"
             field="evalTarget"
             label="工作流名称"
-            placeholder={I18n.t('please_select')}
+            placeholder={hasRequiredAuth ? I18n.t('please_select') : '请先填写 authorization 和 auth_token'}
             rules={[
               { required: true, message: I18n.t('please_select') },
             ]}
+            disabled={!hasRequiredAuth}
             onChange={handleEvalTargetChange}
             filter={true}
             loading={workflowListService.loading}
