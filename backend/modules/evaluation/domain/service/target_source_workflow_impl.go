@@ -17,6 +17,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/ctxcache"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
+	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
 // --------------start----------------------
@@ -352,12 +353,15 @@ func valueTypeToJsonSchema(valueType string) string {
 // PackSourceInfo 填充源信息
 func (t *WorkflowSourceEvalTargetServiceImpl) PackSourceInfo(ctx context.Context, spaceID int64, dos []*entity.EvalTarget) (err error) {
 	// 获取所有工作流列表
+	// 注意：这里可能没有 authorization（如实验列表页面），此时应跳过而不是报错
 	workflows, _, err := t.workflowRPCAdapter.ListWorkflows(ctx, &rpc.ListWorkflowsParam{
 		PageNum:  1,
 		PageSize: 9999,
 	})
 	if err != nil {
-		return err
+		// 如果是因为没有 authorization 导致的错误，跳过不报错
+		logs.CtxWarn(ctx, "PackSourceInfo: ListWorkflows failed, skip filling workflow info, err=%v", err)
+		return nil
 	}
 
 	// 构建映射
@@ -385,12 +389,15 @@ func (t *WorkflowSourceEvalTargetServiceImpl) PackSourceInfo(ctx context.Context
 // PackSourceVersionInfo 填充源版本信息
 func (t *WorkflowSourceEvalTargetServiceImpl) PackSourceVersionInfo(ctx context.Context, spaceID int64, dos []*entity.EvalTarget) (err error) {
 	// 获取所有工作流列表
+	// 注意：这里可能没有 authorization（如实验列表页面），此时应跳过而不是报错
 	workflows, _, err := t.workflowRPCAdapter.ListWorkflows(ctx, &rpc.ListWorkflowsParam{
 		PageNum:  1,
 		PageSize: 9999,
 	})
 	if err != nil {
-		return err
+		// 如果是因为没有 authorization 导致的错误，跳过不报错
+		logs.CtxWarn(ctx, "PackSourceVersionInfo: ListWorkflows failed, skip filling workflow info, err=%v", err)
+		return nil
 	}
 
 	// 构建映射

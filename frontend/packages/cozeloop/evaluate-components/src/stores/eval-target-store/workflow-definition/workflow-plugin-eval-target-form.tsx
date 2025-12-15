@@ -177,7 +177,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     },
     {
       refreshDeps: [workflowId, zhiyuAuthorization, zhiyuAuthToken],
-      ready: !!workflowId,
+      ready: !!workflowId && hasRequiredAuth,
       onError: () => {
         // 报错时清空字段映射，避免显示旧数据
         onChange('evalTargetMapping', undefined);
