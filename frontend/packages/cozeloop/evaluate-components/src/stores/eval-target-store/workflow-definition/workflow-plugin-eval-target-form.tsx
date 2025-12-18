@@ -41,8 +41,8 @@ const ZHIYU_AUTH_TOKEN_HEADER = 'X-Zhiyu-Auth-Token';
 
 // sceneType 选项：0-非流式，2-流式
 const SCENE_TYPE_OPTIONS = [
-  { value: '0', label: '非流式' },
-  { value: '2', label: '流式' },
+  { value: '0', label: '非流式处理(http)' },
+  { value: '2', label: '流式处理(sse)' },
 ];
 
 /**
@@ -243,7 +243,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
           {/* 流式/非流式选择 */}
           <Form.Select
             field={`ext.${ZHIYU_SCENE_TYPE_EXT_KEY}`}
-            label="执行模式"
+            label="工作流模式"
             className="w-full"
             optionList={SCENE_TYPE_OPTIONS}
             initValue={zhiyuSceneType}
