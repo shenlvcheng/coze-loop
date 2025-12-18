@@ -15,14 +15,17 @@ const (
 const (
 	ZhiyuAuthorizationExtKey = "zhiyu_authorization"
 	ZhiyuAuthTokenExtKey     = "zhiyu_auth_token"
+	ZhiyuSceneTypeExtKey     = "zhiyu_scene_type"
 )
 
 type zhiyuAuthorizationCtxKey struct{}
 type zhiyuAuthTokenCtxKey struct{}
+type zhiyuSceneTypeCtxKey struct{}
 
 var (
 	ZhiyuAuthorizationCtxKey = zhiyuAuthorizationCtxKey{}
 	ZhiyuAuthTokenCtxKey     = zhiyuAuthTokenCtxKey{}
+	ZhiyuSceneTypeCtxKey     = zhiyuSceneTypeCtxKey{}
 )
 
 const (

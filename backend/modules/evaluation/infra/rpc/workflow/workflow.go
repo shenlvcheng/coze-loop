@@ -227,25 +227,10 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("请在页面上填写 auth_token"))
 	}
 
-	// 1. 获取工作流列表以获取 sceneType
-	workflows, _, err := w.ListWorkflows(ctx, &rpc.ListWorkflowsParam{
-		PageNum:  1,
-		PageSize: 100,
-	})
-	if err != nil {
-		return nil, errorx.Wrapf(err, "list workflows failed")
-	}
+	// 从 context 获取 sceneType（由前端传入）
+	sceneType, _ := ctxcache.Get[string](ctx, consts.ZhiyuSceneTypeCtxKey)
 
-	// 查找对应的工作流获取 sceneType
-	var sceneType string
-	for _, wf := range workflows {
-		if wf.SceneKey == param.SceneKey {
-			sceneType = wf.SceneType
-			break
-		}
-	}
-
-	// 3. 根据 sceneType 选择 URL
+	// 根据 sceneType 选择 URL
 	var executeURL string
 	if sceneType == "2" { // 流式
 		if cfg.StreamExecuteURL == "" {

@@ -86,6 +86,9 @@ func (t *WorkflowSourceEvalTargetServiceImpl) Execute(ctx context.Context, space
 		if v := param.Input.Ext[consts.ZhiyuAuthTokenExtKey]; len(v) > 0 {
 			ctxcache.Store(ctx, consts.ZhiyuAuthTokenCtxKey, v)
 		}
+		if v := param.Input.Ext[consts.ZhiyuSceneTypeExtKey]; len(v) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuSceneTypeCtxKey, v)
+		}
 	}
 
 	// 转换输入字段

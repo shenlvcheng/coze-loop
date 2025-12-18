@@ -35,8 +35,15 @@ const EvaluateTargetMappingFieldLabel = (
 
 const ZHIYU_AUTHORIZATION_EXT_KEY = 'zhiyu_authorization';
 const ZHIYU_AUTH_TOKEN_EXT_KEY = 'zhiyu_auth_token';
+const ZHIYU_SCENE_TYPE_EXT_KEY = 'zhiyu_scene_type';
 const ZHIYU_AUTHORIZATION_HEADER = 'X-Zhiyu-Authorization';
 const ZHIYU_AUTH_TOKEN_HEADER = 'X-Zhiyu-Auth-Token';
+
+// sceneType 选项：0-非流式，2-流式
+const SCENE_TYPE_OPTIONS = [
+  { value: '0', label: '非流式' },
+  { value: '2', label: '流式' },
+];
 
 /**
  * 智宇工作流评测对象表单
@@ -62,6 +69,10 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     (formValues.ext as Record<string, string> | undefined)?.[
       ZHIYU_AUTH_TOKEN_EXT_KEY
     ] || '';
+  const zhiyuSceneType =
+    (formValues.ext as Record<string, string> | undefined)?.[
+      ZHIYU_SCENE_TYPE_EXT_KEY
+    ] || '0'; // 默认非流式
 
   // 评测集字段
   const evaluationSetSchemas =
@@ -227,6 +238,21 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
               { required: true, message: '请输入 sceneKey' },
             ]}
             onChange={handleEvalTargetChange}
+          />
+
+          {/* 流式/非流式选择 */}
+          <Form.Select
+            field={`ext.${ZHIYU_SCENE_TYPE_EXT_KEY}`}
+            label="执行模式"
+            className="w-full"
+            optionList={SCENE_TYPE_OPTIONS}
+            initValue={zhiyuSceneType}
+            onChange={value => {
+              onChange('ext', {
+                ...(formValues.ext || {}),
+                [ZHIYU_SCENE_TYPE_EXT_KEY]: value as string,
+              });
+            }}
           />
 
           {/* 版本显示（固定0.0.1） */}
