@@ -54,7 +54,7 @@ export const EvaluateTargetForm = (props: EvaluateTargetFormProps) => {
   const pluginEvaluatorList = getEvalTargetDefinitionList();
 
   const evalTargetTypeOptions = pluginEvaluatorList
-    .filter(e => e.selector)
+    .filter(e => e.selector || e.evalTargetFormSlotContent)
     .map(eva => getOptionList(eva));
 
   const currentEvaluator = getEvalTargetDefinition?.(
