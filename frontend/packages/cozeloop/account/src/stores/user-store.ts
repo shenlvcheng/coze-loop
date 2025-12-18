@@ -1,7 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 import { create } from 'zustand';
-import { type UserInfoDetail } from '@cozeloop/api-schema/prompt/domain/user';
+import { type UserInfoDetail } from '@cozeloop/api-schema/foundation';
 
 interface UserState {
   userInfo?: UserInfoDetail;
