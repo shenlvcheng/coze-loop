@@ -8,20 +8,16 @@
 import { useEffect, useMemo } from 'react';
 
 import { isEmpty } from 'lodash-es';
-import { useDebounceFn, useRequest } from 'ahooks';
+import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { useSpace } from '@cozeloop/biz-hooks-adapter';
 import { EvalTargetType, type FieldSchema } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozInfoCircle } from '@coze-arch/coze-design/icons';
-import { Form, FormSelect, Tag, Tooltip, Typography } from '@coze-arch/coze-design';
+import { Form, Tag, Tooltip, Typography } from '@coze-arch/coze-design';
 
 import { type PluginEvalTargetFormProps, type OptionSchema } from '@/types/evaluate-target';
 import { EvaluateTargetMappingField } from '@/components/selectors/evaluate-target';
-
-const ellipsis = {
-  showTooltip: true,
-};
 
 const EvaluateTargetMappingFieldLabel = (
   <div className="inline-flex flex-row items-center">
@@ -67,85 +63,14 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       ZHIYU_AUTH_TOKEN_EXT_KEY
     ] || '';
 
-  const zhiyuHeaders = useMemo(() => {
-    const headers: Record<string, string> = {};
-    if (zhiyuAuthorization) {
-      headers[ZHIYU_AUTHORIZATION_HEADER] = zhiyuAuthorization;
-    }
-    if (zhiyuAuthToken) {
-      headers[ZHIYU_AUTH_TOKEN_HEADER] = zhiyuAuthToken;
-    }
-    return headers;
-  }, [zhiyuAuthorization, zhiyuAuthToken]);
-
   // 评测集字段
   const evaluationSetSchemas =
     createExperimentValues?.evaluationSetVersionDetail?.evaluation_set_schema
       ?.field_schemas;
 
-  // 是否填写了必要的认证信息
+  // 是否填写了必要的认证信息和 sceneKey
   const hasRequiredAuth = !!zhiyuAuthorization && !!zhiyuAuthToken;
-
-  // 获取工作流列表 - 需要填写 authorization 后手动触发
-  const workflowListService = useRequest(
-    async (text?: string) => {
-      // 每次请求时重新构建 headers，确保使用最新值
-      const currentHeaders: Record<string, string> = {};
-      const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
-      const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
-      if (currentAuth) {
-        currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
-      }
-      if (currentToken) {
-        currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
-      }
-
-      const res = await StoneEvaluationApi.ListSourceEvalTargets(
-        {
-          target_type: EvalTargetType.CozeWorkflow,
-          name: text || undefined,
-          workspace_id: spaceID,
-          page_size: 100,
-        },
-        {
-          headers: currentHeaders,
-        },
-      );
-      return res.eval_targets?.map(item => {
-        const etc = item.eval_target_version?.eval_target_content;
-        const title = etc?.coze_workflow?.id || '';
-        const subTitle = etc?.coze_workflow?.name || '';
-
-        return {
-          value: item.source_target_id,
-          label: (
-            <div className="flex flex-row items-center w-full overflow-hidden">
-              <Typography.Text
-                className={'flex-shrink !max-w-[600px] text-[13px]'}
-                ellipsis={ellipsis}
-              >
-                {subTitle}
-              </Typography.Text>
-              <Typography.Text
-                className={'flex-1 w-0 ml-3 text-xs font-medium coz-fg-secondary'}
-                ellipsis={ellipsis}
-              >
-                {title}
-              </Typography.Text>
-            </div>
-          ),
-          ...item,
-        };
-      });
-    },
-    {
-      manual: true, // 不自动执行，等用户填写 token 后手动触发
-    },
-  );
-
-  const handleWorkflowSearch = useDebounceFn(workflowListService.run, {
-    wait: 500,
-  });
+  const canFetchDetail = hasRequiredAuth && !!workflowId;
 
   // 获取工作流详情（包含参数）
   const workflowDetailService = useRequest(
@@ -177,7 +102,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     },
     {
       refreshDeps: [workflowId, zhiyuAuthorization, zhiyuAuthToken],
-      ready: !!workflowId && hasRequiredAuth,
+      ready: canFetchDetail,
       onError: () => {
         // 报错时清空字段映射，避免显示旧数据
         onChange('evalTargetMapping', undefined);
@@ -246,12 +171,6 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     }
   }, [workflowId]);
 
-  // 当 token 填写完成或 authorization 变化时，自动加载工作流列表
-  useEffect(() => {
-    if (hasRequiredAuth) {
-      workflowListService.run();
-    }
-  }, [hasRequiredAuth, zhiyuAuthorization]);
 
   return (
     <>
@@ -266,26 +185,13 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             rules={[
               { required: true, message: '请输入 authorization' },
             ]}
-            onBlur={() => {
-              // 当用户离开输入框时，延迟刷新工作流列表（等待 state 更新）
-              setTimeout(() => {
-                const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
-                const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
-                if (currentAuth && currentToken) {
-                  workflowListService.run();
-                }
-              }, 100);
-            }}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
                 [ZHIYU_AUTHORIZATION_EXT_KEY]: value as string,
               });
-              // 清空已选择的工作流，因为 token 变了
-              if (workflowId) {
-                onChange('evalTarget', undefined);
-                onChange('evalTargetMapping', undefined);
-              }
+              // 清空字段映射，因为认证信息变了
+              onChange('evalTargetMapping', undefined);
             }}
           />
 
@@ -298,45 +204,28 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             rules={[
               { required: true, message: '请输入 auth_token' },
             ]}
-            onBlur={() => {
-              // 当用户离开输入框时，延迟刷新工作流列表（等待 state 更新）
-              setTimeout(() => {
-                const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
-                const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
-                if (currentAuth && currentToken) {
-                  workflowListService.run();
-                }
-              }, 100);
-            }}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
                 [ZHIYU_AUTH_TOKEN_EXT_KEY]: value as string,
               });
-              // 清空已选择的工作流，因为 token 变了
-              if (workflowId) {
-                onChange('evalTarget', undefined);
-                onChange('evalTargetMapping', undefined);
-              }
+              // 清空字段映射，因为认证信息变了
+              onChange('evalTargetMapping', undefined);
             }}
           />
 
-          {/* 工作流选择 - 必须填写 authorization 和 auth_token 后才能选择 */}
-          <FormSelect
-            className="w-full"
+          {/* sceneKey 输入框 */}
+          <Form.Input
             field="evalTarget"
-            label="工作流名称"
-            placeholder={hasRequiredAuth ? I18n.t('please_select') : '请先填写 authorization 和 auth_token'}
+            label="sceneKey"
+            className="w-full"
+            autoComplete="off"
+            placeholder="请输入工作流 sceneKey"
+            initValue={workflowId}
             rules={[
-              { required: true, message: I18n.t('please_select') },
+              { required: true, message: '请输入 sceneKey' },
             ]}
-            disabled={!hasRequiredAuth}
             onChange={handleEvalTargetChange}
-            filter={true}
-            loading={workflowListService.loading}
-            optionList={workflowListService.data}
-            onSearch={handleWorkflowSearch.run}
-            showClear={true}
           />
 
           {/* 版本显示（固定0.0.1） */}
