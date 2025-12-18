@@ -30,7 +30,7 @@ const getEvalTargetValidFields = (values: CreateExperimentValues) => {
 export const workflowEvalTargetDefinitionPayload: EvalTargetDefinition = {
   type: EvalTargetType.CozeWorkflow,
   name: '智宇工作流',
-  selector: null,
+  selector: undefined,
   preview: WorkflowTargetPreview,
   extraValidFields: {
     [ExtCreateStep.EVAL_TARGET]: getEvalTargetValidFields,
