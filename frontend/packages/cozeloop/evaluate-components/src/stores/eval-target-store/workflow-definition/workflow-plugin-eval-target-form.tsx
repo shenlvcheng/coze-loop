@@ -127,7 +127,8 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
     })) as FieldSchema[];
   }, [workflowDetailService.data, workflowDetailService.error]);
 
-  const handleEvalTargetChange = () => {
+  const handleEvalTargetChange = (value: string) => {
+    onChange('evalTarget', value);
     onChange('evalTargetVersion', '0.0.1'); // 固定版本
     onChange('evalTargetMapping', undefined);
   };

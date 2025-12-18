@@ -12,7 +12,6 @@ import {
   ExtCreateStep,
   type EvalTargetDefinition,
 } from '../../../types/evaluate-target';
-import WorkflowEvalTargetSelect from './workflow-eval-target-select';
 import WorkflowTargetPreview from './workflow-target-preview';
 import { WorkflowFieldMappingPreview } from './workflow-field-mapping-preview';
 import { WorkflowEvalTargetView } from './workflow-eval-target-view';
@@ -31,7 +30,7 @@ const getEvalTargetValidFields = (values: CreateExperimentValues) => {
 export const workflowEvalTargetDefinitionPayload: EvalTargetDefinition = {
   type: EvalTargetType.CozeWorkflow,
   name: '智宇工作流',
-  selector: WorkflowEvalTargetSelect,
+  selector: null,
   preview: WorkflowTargetPreview,
   extraValidFields: {
     [ExtCreateStep.EVAL_TARGET]: getEvalTargetValidFields,
