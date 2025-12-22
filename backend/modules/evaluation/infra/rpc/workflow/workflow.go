@@ -246,12 +246,15 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 
 	// 4. 构建请求体
 	reqBody := make(map[string]interface{})
+
+	// 先添加字段映射的数据
 	for k, v := range param.InputData {
 		reqBody[k] = v
 	}
-	// 添加固定参数
+
+	// 然后设置固定参数（固定参数优先级更高，会覆盖字段映射中的同名字段）
 	reqBody["sceneKey"] = param.SceneKey
-	// 根据 sceneType 选择 processCode
+	// 根据 sceneType 选择 processCode（固定参数，必须覆盖字段映射中的值）
 	if sceneType == "2" { // 流式
 		if cfg.StreamProcessCode != "" {
 			reqBody["processCode"] = cfg.StreamProcessCode
