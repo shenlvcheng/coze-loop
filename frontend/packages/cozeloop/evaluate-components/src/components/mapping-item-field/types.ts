@@ -17,4 +17,5 @@ export interface OptionGroup {
 export const schemaSourceTypeMap = {
   set: I18n.t('evaluation_set'),
   target: I18n.t('evaluate_case_create_eval_object'),
+  __default_value__: '默认值',
 };

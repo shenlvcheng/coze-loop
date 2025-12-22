@@ -19,6 +19,12 @@ export function ReadonlyMappingItem({
   keySchema?: FieldSchema;
   optionSchema?: OptionSchema;
 }) {
+  // 如果是默认值字段，显示 constValue 而不是 name
+  const displayValue =
+    (optionSchema as any)?.schemaSourceType === '__default_value__'
+      ? (optionSchema as any)?.constValue || optionSchema?.name
+      : optionSchema?.name;
+
   return (
     <div className="flex flex-row items-center gap-2">
       <ReadonlyItem
@@ -32,10 +38,10 @@ export function ReadonlyMappingItem({
         className="flex-1 basis-80 overflow-hidden"
         title={
           optionSchema?.schemaSourceType &&
-          schemaSourceTypeMap[optionSchema.schemaSourceType]
+          schemaSourceTypeMap[optionSchema.schemaSourceType as keyof typeof schemaSourceTypeMap]
         }
         typeText={getTypeText(optionSchema)}
-        value={optionSchema?.name}
+        value={displayValue}
       />
     </div>
   );
