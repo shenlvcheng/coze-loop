@@ -251,7 +251,16 @@ func (w *WorkflowRPCAdapter) ExecuteWorkflow(ctx context.Context, param *rpc.Exe
 	}
 	// 添加固定参数
 	reqBody["sceneKey"] = param.SceneKey
-	reqBody["processCode"] = cfg.ProcessCode
+	// 根据 sceneType 选择 processCode
+	if sceneType == "2" { // 流式
+		if cfg.StreamProcessCode != "" {
+			reqBody["processCode"] = cfg.StreamProcessCode
+		} else {
+			reqBody["processCode"] = cfg.ProcessCode // 如果未配置流式 processCode，则使用默认的
+		}
+	} else { // 非流式
+		reqBody["processCode"] = cfg.ProcessCode
+	}
 	reqBody["appId"] = cfg.AppID
 	reqBody["accessToken"] = cfg.AccessToken
 

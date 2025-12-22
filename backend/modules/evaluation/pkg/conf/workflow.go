@@ -32,9 +32,10 @@ type WorkflowConfig struct {
 	AuthToken        string `json:"auth_token" yaml:"auth_token" mapstructure:"auth_token"`
 
 	// 执行时的固定参数
-	ProcessCode string `json:"process_code" yaml:"process_code" mapstructure:"process_code"`
-	AppID       string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
-	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`
+	ProcessCode       string `json:"process_code" yaml:"process_code" mapstructure:"process_code"`
+	StreamProcessCode string `json:"stream_process_code" yaml:"stream_process_code" mapstructure:"stream_process_code"`
+	AppID             string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	AccessToken       string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`
 }
 
 // workflowConfiger 智宇工作流配置实现
