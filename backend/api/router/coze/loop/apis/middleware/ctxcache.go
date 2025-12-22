@@ -22,6 +22,9 @@ func CtxCacheMW() app.HandlerFunc {
 		if val := c.GetHeader(consts.ZhiyuAuthTokenHeader); len(val) > 0 {
 			ctxcache.Store(ctx, consts.ZhiyuAuthTokenCtxKey, string(val))
 		}
+		if val := c.GetHeader(consts.ZhiyuSceneTypeHeader); len(val) > 0 {
+			ctxcache.Store(ctx, consts.ZhiyuSceneTypeCtxKey, string(val))
+		}
 
 		c.Next(ctx)
 	}

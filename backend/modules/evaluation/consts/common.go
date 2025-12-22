@@ -10,6 +10,7 @@ const (
 const (
 	ZhiyuAuthorizationHeader = "X-Zhiyu-Authorization"
 	ZhiyuAuthTokenHeader     = "X-Zhiyu-Auth-Token"
+	ZhiyuSceneTypeHeader     = "X-Zhiyu-Scene-Type"
 )
 
 const (

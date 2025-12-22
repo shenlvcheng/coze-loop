@@ -322,8 +322,24 @@ func (w *WorkflowRPCAdapter) GetDefaultParams(ctx context.Context) *rpc.Workflow
 	if cfg == nil {
 		return &rpc.WorkflowDefaultParams{}
 	}
+
+	// 从 context 获取 sceneType（如果存在）
+	sceneType, _ := ctxcache.Get[string](ctx, consts.ZhiyuSceneTypeCtxKey)
+
+	// 根据 sceneType 选择 processCode
+	var processCode string
+	if sceneType == "2" { // 流式
+		if cfg.StreamProcessCode != "" {
+			processCode = cfg.StreamProcessCode
+		} else {
+			processCode = cfg.ProcessCode // 如果未配置流式 processCode，则使用默认的
+		}
+	} else { // 非流式（sceneType == "0" 或其他，或未设置）
+		processCode = cfg.ProcessCode
+	}
+
 	return &rpc.WorkflowDefaultParams{
-		ProcessCode: cfg.ProcessCode,
+		ProcessCode: processCode,
 		AppID:       cfg.AppID,
 		AccessToken: cfg.AccessToken,
 	}

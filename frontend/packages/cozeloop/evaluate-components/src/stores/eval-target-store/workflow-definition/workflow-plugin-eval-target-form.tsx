@@ -38,6 +38,7 @@ const ZHIYU_AUTH_TOKEN_EXT_KEY = 'zhiyu_auth_token';
 const ZHIYU_SCENE_TYPE_EXT_KEY = 'zhiyu_scene_type';
 const ZHIYU_AUTHORIZATION_HEADER = 'X-Zhiyu-Authorization';
 const ZHIYU_AUTH_TOKEN_HEADER = 'X-Zhiyu-Auth-Token';
+const ZHIYU_SCENE_TYPE_HEADER = 'X-Zhiyu-Scene-Type';
 
 // sceneType 选项：0-非流式，2-流式
 const SCENE_TYPE_OPTIONS = [
@@ -91,12 +92,15 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       const currentHeaders: Record<string, string> = {};
       const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
       const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
+      const currentSceneType = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_SCENE_TYPE_EXT_KEY] || '0';
       if (currentAuth) {
         currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
       }
       if (currentToken) {
         currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
       }
+      // 传递 sceneType 到 header，让后端能够根据 sceneType 返回对应的 processCode 默认值
+      currentHeaders[ZHIYU_SCENE_TYPE_HEADER] = currentSceneType;
 
       const res = await StoneEvaluationApi.ListSourceEvalTargetVersions(
         {
@@ -112,7 +116,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       return res.versions?.[0];
     },
     {
-      refreshDeps: [workflowId, zhiyuAuthorization, zhiyuAuthToken],
+      refreshDeps: [workflowId, zhiyuAuthorization, zhiyuAuthToken, zhiyuSceneType],
       ready: canFetchDetail,
       onError: () => {
         // 报错时清空字段映射，避免显示旧数据
