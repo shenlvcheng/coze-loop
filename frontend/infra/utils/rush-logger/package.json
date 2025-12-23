@@ -11,7 +11,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "exit 0",
+    "build": "tsc -b tsconfig.build.json",
     "lint": "eslint ./src ./__tests__ --cache",
     "test": "vitest --run",
     "test:cov": "vitest run --coverage"

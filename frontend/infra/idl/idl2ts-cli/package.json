@@ -9,7 +9,7 @@
     "idl2ts": "./src/cli.js"
   },
   "scripts": {
-    "build": "exit 0",
+    "build": "tsc -b tsconfig.build.json",
     "lint": "eslint ./ --cache",
     "test": "vitest --run --passWithNoTests",
     "test:cov": "npm run test -- --coverage"
