@@ -73,16 +73,16 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
   const zhiyuSceneType =
     (formValues.ext as Record<string, string> | undefined)?.[
       ZHIYU_SCENE_TYPE_EXT_KEY
-    ] || '0'; // 默认非流式
+    ] || ''; // 默认为空，需要用户选择
 
   // 评测集字段
   const evaluationSetSchemas =
     createExperimentValues?.evaluationSetVersionDetail?.evaluation_set_schema
       ?.field_schemas;
 
-  // 是否填写了必要的认证信息和 sceneKey
+  // 是否填写了必要的认证信息、sceneKey 和工作流模式
   const hasRequiredAuth = !!zhiyuAuthorization && !!zhiyuAuthToken;
-  const canFetchDetail = hasRequiredAuth && !!workflowId;
+  const canFetchDetail = hasRequiredAuth && !!workflowId && !!zhiyuSceneType;
 
   // 获取工作流详情（包含参数）
   const workflowDetailService = useRequest(
@@ -92,7 +92,7 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
       const currentHeaders: Record<string, string> = {};
       const currentAuth = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTHORIZATION_EXT_KEY] || '';
       const currentToken = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_AUTH_TOKEN_EXT_KEY] || '';
-      const currentSceneType = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_SCENE_TYPE_EXT_KEY] || '0';
+      const currentSceneType = (formValues.ext as Record<string, string> | undefined)?.[ZHIYU_SCENE_TYPE_EXT_KEY];
       if (currentAuth) {
         currentHeaders[ZHIYU_AUTHORIZATION_HEADER] = currentAuth;
       }
@@ -100,7 +100,10 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
         currentHeaders[ZHIYU_AUTH_TOKEN_HEADER] = currentToken;
       }
       // 传递 sceneType 到 header，让后端能够根据 sceneType 返回对应的 processCode 默认值
-      currentHeaders[ZHIYU_SCENE_TYPE_HEADER] = currentSceneType;
+      // 只有在用户选择了 sceneType 时才传递
+      if (currentSceneType) {
+        currentHeaders[ZHIYU_SCENE_TYPE_HEADER] = currentSceneType;
+      }
 
       const res = await StoneEvaluationApi.ListSourceEvalTargetVersions(
         {
@@ -253,11 +256,20 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             optionList={SCENE_TYPE_OPTIONS}
             initValue={zhiyuSceneType || undefined}
             showClear={false}
+            rules={[
+              { required: true, message: '请选择工作流模式' },
+            ]}
             onChange={value => {
+              // 确保选择后不能清空
+              if (!value) {
+                return;
+              }
               onChange('ext', {
                 ...(formValues.ext || {}),
                 [ZHIYU_SCENE_TYPE_EXT_KEY]: value as string,
               });
+              // 清空字段映射，因为工作流模式变了，需要重新获取
+              onChange('evalTargetMapping', undefined);
             }}
           />
 
