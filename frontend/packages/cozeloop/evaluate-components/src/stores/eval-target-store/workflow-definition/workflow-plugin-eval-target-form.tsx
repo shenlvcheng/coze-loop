@@ -249,8 +249,10 @@ const WorkflowPluginEvalTargetForm = (props: PluginEvalTargetFormProps) => {
             field={`ext.${ZHIYU_SCENE_TYPE_EXT_KEY}`}
             label="工作流模式"
             className="w-full"
+            placeholder="请选择工作流模式"
             optionList={SCENE_TYPE_OPTIONS}
-            initValue={zhiyuSceneType}
+            initValue={zhiyuSceneType || undefined}
+            showClear={false}
             onChange={value => {
               onChange('ext', {
                 ...(formValues.ext || {}),
